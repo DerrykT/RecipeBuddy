@@ -14,7 +14,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class LoginActivity extends Activity {
     // variable initialization
-    private Button homeRedirectBtn, loginBtn;
+    private Button homeRedirectBtn, loginBtn, registerBtn;
     private EditText usernameEdt, passwordEdt;
     private final LoginActivity activity = LoginActivity.this;
 
@@ -25,14 +25,14 @@ public class LoginActivity extends Activity {
 
         usernameEdt = findViewById(R.id.idEdtUsername);
         passwordEdt = findViewById(R.id.idEdtPassword);
-        homeRedirectBtn = findViewById(R.id.homeRedirect);
         loginBtn = findViewById(R.id.login);
+        registerBtn = findViewById(R.id.register);
 
-        // back button
-        homeRedirectBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent e = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(e);
+        registerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent r = new Intent(LoginActivity.this, RegisterActivity.class);
+                startActivity(r);
             }
         });
 
@@ -51,10 +51,12 @@ public class LoginActivity extends Activity {
                     String spacedname = username.replaceAll("\\s+", "_");
                     String spacedpass = password.replaceAll("\\s+", "_");
 
+                    String usernameCheck = SaveSharedPreference.getUserName(LoginActivity.this);
+                    String passwordCheck = SaveSharedPreference.getPassword(LoginActivity.this);
+
                     // Pull info from shared preferences
-                    SharedPreferences sh = getSharedPreferences("my.app.RecipeBuddy_preferences", MODE_PRIVATE);
-                    String usernameCheck = sh.getString("username", "");
-                    String passwordCheck = sh.getString("password", "");
+
+
 
                     // If what's entered matches what has been saved, redirect
                     if (username == usernameCheck && password == passwordCheck) {
@@ -67,9 +69,8 @@ public class LoginActivity extends Activity {
                 }
 
                 // Pull from sharedpreferences
-                SharedPreferences sh = getSharedPreferences("my.app.RecipeBuddy_preferences", MODE_PRIVATE);
-                String usernameCheck = sh.getString("username", "");
-                String passwordCheck = sh.getString("password", "");
+                String usernameCheck = SaveSharedPreference.getUserName(LoginActivity.this);
+                String passwordCheck = SaveSharedPreference.getPassword(LoginActivity.this);
 
                 // If input matches, redirect
 

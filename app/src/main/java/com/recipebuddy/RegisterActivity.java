@@ -31,7 +31,7 @@ public class RegisterActivity extends Activity {
         // back button
         homeRedirectBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent e = new Intent(RegisterActivity.this, MainActivity.class);
+                Intent e = new Intent(RegisterActivity.this, LoginActivity.class);
                 startActivity(e);
             }
         });
@@ -58,15 +58,12 @@ public class RegisterActivity extends Activity {
                     Toast.makeText(RegisterActivity.this, "Username and password must be 5 or more characters in length.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                SharedPreferences sharedPreferences = getSharedPreferences("my.app.RecipeBuddy_preferences", MODE_PRIVATE);
-                SharedPreferences.Editor myEdit = sharedPreferences.edit();
 
-                myEdit.putString("username", username);
-                myEdit.putString("password", password);
-                myEdit.commit();
+                SaveSharedPreference.setUserName(RegisterActivity.this, username);
+                SaveSharedPreference.setPassword(RegisterActivity.this, password);
 
-                // send user back to main menu
-                Intent e = new Intent(RegisterActivity.this, MainActivity.class);
+                // send user back to login
+                Intent e = new Intent(RegisterActivity.this, LoginActivity.class);
                 startActivity(e);
 
                 // display success message and reset
