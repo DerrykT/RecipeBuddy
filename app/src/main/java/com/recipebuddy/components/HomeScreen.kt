@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recipebuddy.R
+import com.recipebuddy.components.SelectedScreenManager.CREATE_RECIPE_SCREEN
 import com.recipebuddy.components.SelectedScreenManager.PANTRY_HOME_SCREEN
 import com.recipebuddy.components.SelectedScreenManager.PROFILE_HOME_SCREEN
 import com.recipebuddy.components.SelectedScreenManager.RECIPE_COOKING_SCREEN
@@ -34,6 +35,7 @@ object SelectedScreenManager {
     const val PROFILE_HOME_SCREEN = 2
 
     const val RECIPE_COOKING_SCREEN = 3
+    const val CREATE_RECIPE_SCREEN = 4
 }
 
 @Composable
@@ -53,7 +55,7 @@ fun HomeScreen() {
             HomeScreenTab(
                 onClick = { selectedScreen = RECIPE_HOME_SCREEN },
                 modifier = Modifier.weight(1f),
-                selected = (selectedScreen == RECIPE_HOME_SCREEN || selectedScreen == RECIPE_COOKING_SCREEN)
+                selected = (selectedScreen == RECIPE_HOME_SCREEN || selectedScreen == RECIPE_COOKING_SCREEN || selectedScreen == CREATE_RECIPE_SCREEN)
             ) {
                 Text(text = "Recipes", fontSize = 20.sp)
             }
