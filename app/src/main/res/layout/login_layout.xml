@@ -11,11 +11,11 @@
 
     <view
         android:id="@+id/view"
-        android:background="@color/darktan"
         class="androidx.viewpager.widget.ViewPager"
         android:layout_width="307dp"
         android:layout_height="233dp"
         android:layout_marginTop="44dp"
+        android:background="@color/darktan"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -67,14 +67,15 @@
         app:layout_constraintStart_toStartOf="@+id/view" />
 
     <Button
-        android:id="@+id/homeRedirect"
-        android:layout_width="162dp"
-        android:layout_height="41dp"
+        android:id="@+id/register"
+        android:layout_width="149dp"
+        android:layout_height="42dp"
         android:layout_marginTop="28dp"
-        android:backgroundTint="@color/darktan"
-        android:text="Back"
-        android:textAllCaps="false"
+
+        android:backgroundTint="@color/purple_200"
+        android:text="Register?"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.488"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/view" />
 
