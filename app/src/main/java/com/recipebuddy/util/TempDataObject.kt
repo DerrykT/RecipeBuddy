@@ -3,7 +3,7 @@ package com.recipebuddy.util
 import com.recipebuddy.R
 
 object TempDataObject {
-    val username = "Derryk Taylor"
+    var username = "Derryk Taylor"
 
 
     val ingredients = listOf<Ingredient>(

@@ -16,17 +16,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recipebuddy.R
-import com.recipebuddy.components.SelectedScreenManager.CREATE_RECIPE_SCREEN
-import com.recipebuddy.components.SelectedScreenManager.PANTRY_HOME_SCREEN
-import com.recipebuddy.components.SelectedScreenManager.PROFILE_HOME_SCREEN
-import com.recipebuddy.components.SelectedScreenManager.RECIPE_COOKING_SCREEN
-import com.recipebuddy.components.SelectedScreenManager.RECIPE_HOME_SCREEN
-import com.recipebuddy.components.SelectedScreenManager.selectedRecipeIndex
-import com.recipebuddy.components.SelectedScreenManager.selectedScreen
+import com.recipebuddy.components.ScreenManager.CREATE_RECIPE_SCREEN
+import com.recipebuddy.components.ScreenManager.EDIT_PROFILE_SCREEN
+import com.recipebuddy.components.ScreenManager.PANTRY_HOME_SCREEN
+import com.recipebuddy.components.ScreenManager.PROFILE_HOME_SCREEN
+import com.recipebuddy.components.ScreenManager.RECIPE_COOKING_SCREEN
+import com.recipebuddy.components.ScreenManager.RECIPE_HOME_SCREEN
+import com.recipebuddy.components.ScreenManager.selectedRecipeIndex
+import com.recipebuddy.components.ScreenManager.selectedScreen
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.TempDataObject
 
-object SelectedScreenManager {
+object ScreenManager {
     var selectedScreen by mutableStateOf(0)
     var selectedRecipeIndex by mutableStateOf(-1)
 
@@ -36,6 +37,8 @@ object SelectedScreenManager {
 
     const val RECIPE_COOKING_SCREEN = 3
     const val CREATE_RECIPE_SCREEN = 4
+    const val EDIT_PROFILE_SCREEN = 5
+    const val EDIT_PANTRY_SCREEN = 6
 }
 
 @Composable
@@ -70,7 +73,7 @@ fun HomeScreen() {
 
             HomeScreenTab(
                 onClick = { selectedScreen = PROFILE_HOME_SCREEN },
-                selected = selectedScreen == PROFILE_HOME_SCREEN
+                selected = (selectedScreen == PROFILE_HOME_SCREEN || selectedScreen == EDIT_PROFILE_SCREEN)
             ) {
                 Box(
                     modifier = Modifier
@@ -90,7 +93,7 @@ fun HomeScreen() {
         when (selectedScreen) {
             RECIPE_HOME_SCREEN -> RecipeHomeScreen()
             PANTRY_HOME_SCREEN -> PantryHomeScreen()
-            PROFILE_HOME_SCREEN -> ProfileHomeScreen()
+            PROFILE_HOME_SCREEN, EDIT_PROFILE_SCREEN -> ProfileHomeScreen()
             RECIPE_COOKING_SCREEN -> {
                 if(selectedRecipeIndex < 0) {
                     selectedScreen = RECIPE_HOME_SCREEN

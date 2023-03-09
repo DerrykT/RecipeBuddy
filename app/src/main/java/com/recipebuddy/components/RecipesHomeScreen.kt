@@ -48,26 +48,26 @@ fun RecipeHomeScreen() {
             RecipeScrollable(recipes = TempDataObject.recipes)
         }
 
-        Box(
-            contentAlignment = Alignment.BottomEnd,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(13.dp)
-        ) {
-            Button(
-                colors = ButtonDefaults.buttonColors(Color.White),
-                shape = CircleShape,
-                modifier = Modifier
-                    .border(3.dp, Color.Black, shape = CircleShape)
-                    .width(50.dp)
-                    .height(50.dp),
-                onClick = {
-                    SelectedScreenManager.selectedScreen = SelectedScreenManager.CREATE_RECIPE_SCREEN
-                }
-            ) {
-                Image(painter = painterResource(id = R.drawable.plus_add_icon), contentDescription = "", modifier = Modifier.width(40.dp).height(40.dp))
-            }
-        }
+//        Box(
+//            contentAlignment = Alignment.BottomEnd,
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(13.dp)
+//        ) {
+//            Button(
+//                colors = ButtonDefaults.buttonColors(Color.White),
+//                shape = CircleShape,
+//                modifier = Modifier
+//                    .border(3.dp, Color.Black, shape = CircleShape)
+//                    .width(50.dp)
+//                    .height(50.dp),
+//                onClick = {
+//                    ScreenManager.selectedScreen = ScreenManager.CREATE_RECIPE_SCREEN
+//                }
+//            ) {
+//                Image(painter = painterResource(id = R.drawable.create_icon), contentDescription = "", modifier = Modifier.width(40.dp).height(40.dp))
+//            }
+//        }
     }
 }
 
@@ -180,7 +180,7 @@ fun RecipeScrollableItem(recipe: Recipe, index: Int) {
     Column(
         modifier = Modifier
             .border(
-                width = if (SelectedScreenManager.selectedRecipeIndex == index) {
+                width = if (ScreenManager.selectedRecipeIndex == index) {
                     4.dp
                 } else {
                     0.dp
@@ -190,8 +190,8 @@ fun RecipeScrollableItem(recipe: Recipe, index: Int) {
             )
             .padding(10.dp)
             .clickable {
-                SelectedScreenManager.selectedRecipeIndex =
-                    if (SelectedScreenManager.selectedRecipeIndex == index) {
+                ScreenManager.selectedRecipeIndex =
+                    if (ScreenManager.selectedRecipeIndex == index) {
                         -1
                     } else {
                         index
@@ -252,7 +252,7 @@ fun RecipeScrollableItem(recipe: Recipe, index: Int) {
             Text(text = recipe.time, fontSize = 15.sp)
         }
 
-        if (SelectedScreenManager.selectedRecipeIndex == index) {
+        if (ScreenManager.selectedRecipeIndex == index) {
             ExpandedRecipeDetailsView(recipe)
         }
     }
@@ -360,8 +360,8 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
                 colors = ButtonDefaults.buttonColors(Color.Green),
                 shape = RoundedCornerShape(5.dp),
                 onClick = {
-                    SelectedScreenManager.selectedScreen =
-                        SelectedScreenManager.RECIPE_COOKING_SCREEN
+                    ScreenManager.selectedScreen =
+                        ScreenManager.RECIPE_COOKING_SCREEN
                 }
             ) {
                 Text(text = "Cook", fontSize = 20.sp, color = Color.Black)
