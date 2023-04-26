@@ -8,7 +8,8 @@ data class Recipe_Info(
     val RecipeName: String,
     val RecipeDesc: String,
     val RecipeInstructions: String,
-    val RecipeRating: Double
+    val RecipeRating: Double,
+    val AssociatedUser: String
 )
 
 @Entity(tableName = "Ingredient_List")
@@ -53,6 +54,13 @@ data class Image_List(
     val RecipeID: Int
 )
 
+@Entity(tableName = "Users")
+data class Users(
+    @PrimaryKey val Username: String,
+    val Password: String
+)
+
+
 @Dao
 interface Insertion {
     @Insert
@@ -75,6 +83,8 @@ interface Insertion {
 
     @Insert
     fun insertImageList(imageList: Image_List): Long
+
+    fun insertUser(user: Users): Long
 }
 
 
@@ -127,6 +137,11 @@ interface ReadData{
             "FROM Recipe_Info " +
             "WHERE RecipeID = :searchName")
     fun getInstructions(searchName: String): String
+
+    @Query("SELECT Password " +
+            "FROM Users " +
+            "Where Username = :searchName")
+    fun getPassword(searchName: String): String
 }
 
 data class RecipeIngredientList(
