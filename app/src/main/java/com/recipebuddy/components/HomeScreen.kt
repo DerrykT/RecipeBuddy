@@ -44,6 +44,10 @@ object ScreenManager {
     const val LOGIN_SCREEN = 7
 }
 
+fun SetSelectedScreen() {
+    selectedScreen = 0
+}
+
 @Composable
 fun HomeScreen() {
     Column(
@@ -97,6 +101,10 @@ fun HomeScreen() {
             RECIPE_HOME_SCREEN -> RecipeHomeScreen()
             PANTRY_HOME_SCREEN -> PantryHomeScreen()
             PROFILE_HOME_SCREEN, EDIT_PROFILE_SCREEN -> ProfileHomeScreen()
+           // if (selectedScreen === LOGIN_SCREEN) {
+             //   selectedScreen = RECIPE_HOME_SCREEN
+               // Logout()
+            //}
             LOGIN_SCREEN -> Logout()
             RECIPE_COOKING_SCREEN -> {
                 if(selectedRecipeIndex < 0) {

@@ -10,5 +10,6 @@ import com.recipebuddy.javacomponents.SaveSharedPreference
 fun Logout() {
     val context = LocalContext.current
     SaveSharedPreference.clearUser(context)
+    SetSelectedScreen()
     context.startActivity((Intent(context, LoginActivity::class.java)))
 }
