@@ -1,5 +1,9 @@
 package com.recipebuddy.components
 
+import android.view.MotionEvent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -10,13 +14,20 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -31,7 +42,7 @@ import com.recipebuddy.util.TempDataObject
 fun RecipeHomeScreen() {
     Box {
         Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             // Initial top spacing
             Spacer(modifier = Modifier.height(10.dp))
@@ -41,6 +52,9 @@ fun RecipeHomeScreen() {
 
             // Tags Row
             TagsRow()
+
+            // Rating Bar
+            RatingSelect(rating = 1)
 
             Spacer(modifier = Modifier.height(5.dp))
 
@@ -78,37 +92,25 @@ fun SearchBar() {
     TextField(
         value = searchText,
         singleLine = true,
-        readOnly = true,
-        label = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Search",
-                    fontSize = 16.sp,
-                    color = Color.DarkGray,
-                    modifier = Modifier.weight(1f)
-                )
-                Image(
-                    painterResource(id = R.drawable.search_icon),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .height(25.dp)
-                        .width(25.dp)
-                )
-            }
-        },
         onValueChange = { newText ->
             searchText = newText
         },
+        leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "",
+                modifier = Modifier
+                    .size(30.dp)
+            )
+        },
+        colors = TextFieldDefaults.textFieldColors(
+            cursorColor = Color.DarkGray,
+        ),
+        textStyle = TextStyle(color = Color.Black, fontSize = 22.sp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(40.dp)
             .padding(start = 30.dp, end = 30.dp)
             .border(3.dp, Color.DarkGray)
-            .clickable {
-
-            }
     )
 }
 
@@ -135,11 +137,15 @@ fun TagsRow() {
         // Add Tags Button
         Button(
             onClick = {},
-            colors = ButtonDefaults.buttonColors(Color.DarkGray)
+            colors = ButtonDefaults.buttonColors(Color.DarkGray),
         ) {
-            Text(text = "Add Tags", fontSize = 12.sp, color = Color.White)
-
-            // IMAGE
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "",
+                tint = Color.LightGray,
+                modifier = Modifier
+                    .size(25.dp)
+            )
         }
     }
 }
@@ -154,7 +160,62 @@ fun TagButton(
         colors = ButtonDefaults.buttonColors(AppColor.TAG_BUTTON_GREEN),
         shape = RoundedCornerShape(50.dp)
     ) {
+        Icon(
+            Icons.Default.Close,
+            contentDescription = "",
+            tint = Color.DarkGray,
+            modifier = Modifier
+                .size(17.dp)
+        )
+        Spacer(modifier = Modifier.width(3.dp))
         Text(text = text, fontSize = 12.sp, color = Color.White)
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun RatingSelect(
+    modifier: Modifier = Modifier,
+    rating: Int
+) {
+    var ratingState by remember {
+        mutableStateOf(rating)
+    }
+
+    var selected by remember {
+        mutableStateOf(false)
+    }
+    val size by animateDpAsState(
+        targetValue = if (selected) 50.dp else 45.dp,
+        spring(Spring.DampingRatioMediumBouncy)
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        for (i in 1..5) {
+            Icon(
+                painter = painterResource(id = R.drawable.star_icon),
+                contentDescription = "star",
+                modifier = modifier
+                    .width(size)
+                    .height(size)
+                    .pointerInteropFilter {
+                        when (it.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                selected = true
+                                ratingState = i
+                            }
+                            MotionEvent.ACTION_UP -> {
+                                selected = false
+                            }
+                        }
+                        true
+                    },
+                tint = if (i <= ratingState) Color(0xfffad428) else Color(0xFF757574)
+            )
+        }
     }
 }
 
