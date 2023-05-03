@@ -22,6 +22,7 @@ import com.recipebuddy.R
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.Instruction
 import com.recipebuddy.util.Recipe
+import com.recipebuddy.util.minuteToString
 
 @Composable
 fun RecipeCookingScreen(recipe: Recipe) {
@@ -56,7 +57,7 @@ fun RecipeCookingScreen(recipe: Recipe) {
 
                 Spacer(modifier = Modifier.width(3.dp))
 
-                Text(text = recipe.time, fontSize = 15.sp)
+                Text(text = minuteToString(recipe.time), fontSize = 15.sp)
             }
 
             RatingBar(rating = recipe.rating, bubbleSize = 15.dp)
@@ -101,7 +102,7 @@ fun RecipeCookingScreen(recipe: Recipe) {
                 ) {
                     recipe.ingredients.forEach { ingredient ->
                         item {
-                            Text(text = "${ingredient.weight} ${ingredient.name}", fontSize = 18.sp)
+                            Text(text = "${ingredient.Quantity} ${ingredient.Unit} ${ingredient.IngredientName}", fontSize = 18.sp)
                         }
                     }
                 }
@@ -157,8 +158,8 @@ private fun InstructionItem(instruction: Instruction, number: Int) {
     Row() {
         Text(text = "$number. ${instruction.text}", fontSize = 18.sp, modifier = Modifier.weight(1f))
 
-        if(instruction.timer != null) {
-            Timer(instruction.timer)
+        if(instruction.time != null) {
+            Timer(minuteToString(instruction.time))
         }
     }
 }

@@ -16,11 +16,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recipebuddy.ui.resources.AppColor
-import com.recipebuddy.util.TempDataObject
+import com.recipebuddy.util.getUsername
 
 @Composable
 fun ProfileHomeScreen() {
-    var tempUsername by remember { mutableStateOf(TempDataObject.username) }
+    var tempUsername by remember { mutableStateOf(getUsername()) }
+    var username by remember { mutableStateOf(getUsername()) }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -55,7 +56,7 @@ fun ProfileHomeScreen() {
         ) {
             Text(text = "Username:", fontSize = 30.sp)
 
-            if (ScreenManager.selectedScreen == ScreenManager.EDIT_PROFILE_SCREEN) {
+            if (ScreenManager.selectedHomeScreen == ScreenManager.EDIT_PROFILE_SCREEN) {
                 TextField(
                     value = tempUsername,
                     singleLine = true,
@@ -70,7 +71,7 @@ fun ProfileHomeScreen() {
                     }
                 )
             } else {
-                Text(text = TempDataObject.username, fontSize = 30.sp)
+                Text(text = username, fontSize = 30.sp)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -78,10 +79,10 @@ fun ProfileHomeScreen() {
             Row(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                if (ScreenManager.selectedScreen == ScreenManager.EDIT_PROFILE_SCREEN) {
+                if (ScreenManager.selectedHomeScreen == ScreenManager.EDIT_PROFILE_SCREEN) {
                     Button(
                         onClick = {
-                            ScreenManager.selectedScreen = ScreenManager.PROFILE_HOME_SCREEN
+                            ScreenManager.selectedHomeScreen = ScreenManager.PROFILE_HOME_SCREEN
                         },
                         colors = ButtonDefaults.buttonColors(Color.Red),
                         shape = RoundedCornerShape(10.dp),
@@ -98,8 +99,8 @@ fun ProfileHomeScreen() {
 
                     Button(
                         onClick = {
-                            TempDataObject.username = tempUsername
-                            ScreenManager.selectedScreen = ScreenManager.PROFILE_HOME_SCREEN
+                            username = tempUsername
+                            ScreenManager.selectedHomeScreen = ScreenManager.PROFILE_HOME_SCREEN
                         },
                         colors = ButtonDefaults.buttonColors(Color.Green),
                         shape = RoundedCornerShape(10.dp),
@@ -125,8 +126,8 @@ fun ProfileHomeScreen() {
 
                     Button(
                         onClick = {
-                            tempUsername = TempDataObject.username
-                            ScreenManager.selectedScreen = ScreenManager.EDIT_PROFILE_SCREEN
+                            tempUsername = username
+                            ScreenManager.selectedHomeScreen = ScreenManager.EDIT_PROFILE_SCREEN
                         },
                         colors = ButtonDefaults.buttonColors(Color.Gray),
                         shape = RoundedCornerShape(10.dp),
