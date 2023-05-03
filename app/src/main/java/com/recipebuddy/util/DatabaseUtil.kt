@@ -2,13 +2,15 @@ package com.recipebuddy.util
 
 import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.runtime.MutableState
-import androidx.room.PrimaryKey
 import androidx.room.Room
 import com.recipebuddy.R
 import com.recipebuddy.database.*
 import com.recipebuddy.util.DatabaseManager.db
 import kotlinx.coroutines.*
+import java.io.ByteArrayOutputStream
 
 object DatabaseManager {
     var db: AppDatabase? = null
@@ -20,7 +22,7 @@ object DatabaseManager {
         ).fallbackToDestructiveMigration().build()
     }
 
-    fun populate() {
+    fun populate(context: Context) {
         db ?: return
         Thread(Runnable {
             val recipeTools = listOf(
@@ -72,7 +74,16 @@ object DatabaseManager {
                         4,
                         getUsername(),
                         45,
-                        R.drawable.cookies_recipe_image,
+                        with(
+                            BitmapFactory.decodeResource(
+                                context.resources,
+                                R.drawable.cookies_recipe_image
+                            )
+                        ) {
+                            val stream = ByteArrayOutputStream()
+                            this.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                            stream.toByteArray()
+                        },
                         formatToolsList(recipeTools)
                     )
                 )
@@ -124,7 +135,7 @@ object DatabaseManager {
             recipeTools.forEach { tool ->
                 try {
                     db?.insertion()?.insertTool(Tool_List(tool))
-                } catch(exception: SQLiteConstraintException) {
+                } catch (exception: SQLiteConstraintException) {
 
                 }
             }
@@ -134,7 +145,7 @@ object DatabaseManager {
                 try {
                     db?.insertion()?.insertRecipeInfo(recipe)
                 } catch (exception: SQLiteConstraintException) {
-
+                    throw Exception("IG this is the issue")
                 }
 
                 val recipeIngredients = listOf(
@@ -287,7 +298,7 @@ fun fetchFormattedRecipes(recipes: MutableState<List<Recipe>>) {
                     ingredients,
                     tools,
                     formattedInstructions,
-                    it.Picture
+                    BitmapFactory.decodeByteArray(it.Picture, 0, it.Picture.size)
                 )
             )
         }
@@ -330,6 +341,39 @@ fun fetchTools(toolsState: MutableState<List<String>>) {
 
 fun getUsername(): String = "Derryk Taylor"
 
+fun persistTool(newTool: String, toolsState: MutableState<List<String>>) {
+    GlobalScope.launch(Dispatchers.IO) {
+        db?.insertion()?.insertTool(Tool_List(newTool))
+
+        withContext(Dispatchers.Main) {
+            toolsState.value = listOf(newTool) + toolsState.value
+        }
+    }
+}
+
+fun persistIngredient(
+    newIngredient: Ingredient_List,
+    ingredientsState: MutableState<List<Ingredient_List>>
+) {
+    GlobalScope.launch(Dispatchers.IO) {
+        db?.insertion()?.insertIngredientList(newIngredient)
+
+        withContext(Dispatchers.Main) {
+            ingredientsState.value = listOf(newIngredient) + ingredientsState.value
+        }
+    }
+}
+
+fun persistTag(newTag: Tag_List, tagsState: MutableState<List<Tag_List>>) {
+    GlobalScope.launch(Dispatchers.IO) {
+        db?.insertion()?.insertTagList(newTag)
+
+        withContext(Dispatchers.Main) {
+            tagsState.value = listOf(newTag) + tagsState.value
+        }
+    }
+}
+
 data class Recipe(
     val name: String,
     val rating: Int,
@@ -338,7 +382,7 @@ data class Recipe(
     val ingredients: List<RecipeIngredientList>,
     val tools: List<String>,
     val instructions: List<Instruction>,
-    val imageRes: Int
+    val imageBitmap: Bitmap
 )
 
 data class Instruction(val text: String, val time: Int?)

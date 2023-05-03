@@ -3,16 +3,18 @@ package com.recipebuddy.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,7 +41,7 @@ fun RecipeCookingScreen(recipe: Recipe) {
                 .height(200.dp)
         ) {
             Image(
-                painter = painterResource(id = recipe.imageRes),
+                bitmap = recipe.imageBitmap.asImageBitmap(),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -102,7 +104,10 @@ fun RecipeCookingScreen(recipe: Recipe) {
                 ) {
                     recipe.ingredients.forEach { ingredient ->
                         item {
-                            Text(text = "${ingredient.Quantity} ${ingredient.Unit} ${ingredient.IngredientName}", fontSize = 18.sp)
+                            Text(
+                                text = "${ingredient.Quantity} ${ingredient.Unit} ${ingredient.IngredientName}",
+                                fontSize = 18.sp
+                            )
                         }
                     }
                 }
@@ -135,14 +140,21 @@ fun RecipeCookingScreen(recipe: Recipe) {
             }
         }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(5.dp), modifier = Modifier.fillMaxWidth()) {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
             item {
                 Spacer(modifier = Modifier.height(4.dp))
             }
 
             recipe.instructions.forEachIndexed { index, instruction ->
                 item {
-                    InstructionItem(instruction = instruction, number = index)
+                    InstructionItem(
+                        instruction = instruction,
+                        number = index,
+                        recipeName = recipe.name
+                    )
                 }
             }
 
@@ -154,18 +166,22 @@ fun RecipeCookingScreen(recipe: Recipe) {
 }
 
 @Composable
-private fun InstructionItem(instruction: Instruction, number: Int) {
+private fun InstructionItem(recipeName: String, instruction: Instruction, number: Int) {
     Row() {
-        Text(text = "$number. ${instruction.text}", fontSize = 18.sp, modifier = Modifier.weight(1f))
+        Text(
+            text = "$number. ${instruction.text}",
+            fontSize = 18.sp,
+            modifier = Modifier.weight(1f)
+        )
 
-        if(instruction.time != null) {
-            Timer(minuteToString(instruction.time))
+        if (instruction.time != null) {
+            Timer(instruction.time, recipeName, number)
         }
     }
 }
 
 @Composable
-private fun Timer(time: String) {
+private fun Timer(startTime: Int, recipeName: String, instructionNumber: Int) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -176,7 +192,7 @@ private fun Timer(time: String) {
             .padding(4.dp)
 
     ) {
-        Text(text = time, fontSize = 16.sp)
+        Text(text = minuteToString(startTime), fontSize = 16.sp)
 
         Spacer(modifier = Modifier.height(4.dp))
 
@@ -186,6 +202,9 @@ private fun Timer(time: String) {
                 .background(Color.Green)
                 .border(1.dp, Color.Black)
                 .padding(top = 3.dp, bottom = 3.dp, start = 5.dp, end = 5.dp)
+                .clickable {
+
+                }
         ) {
             Text(text = "Start", fontSize = 14.sp)
         }

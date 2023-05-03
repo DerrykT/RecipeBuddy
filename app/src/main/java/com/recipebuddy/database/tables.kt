@@ -1,5 +1,6 @@
 package com.recipebuddy.database
 
+import android.graphics.Bitmap
 import androidx.room.*
 
 @Entity(tableName = "Recipe_Info")
@@ -10,7 +11,7 @@ data class Recipe_Info(
     val RecipeRating: Int,
     val AssociatedUser: String,
     val Time: Int,
-    val Picture: Int,
+    val Picture: ByteArray,
     val Tools: String
 )
 
@@ -88,7 +89,7 @@ interface Insertion {
     Tag_List::class,
     Recipe_Tags::class,
     Users::class,
-], version = 2)
+], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun insertion(): Insertion
     abstract fun readData(): ReadData

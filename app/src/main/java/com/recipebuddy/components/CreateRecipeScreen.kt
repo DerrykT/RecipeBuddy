@@ -1,5 +1,13 @@
 package com.recipebuddy.components
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,7 +42,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
 import com.recipebuddy.util.*
+import java.io.FileOutputStream
 
 private val MAIN_INPUT_SCREEN_SIZE = 320.dp
 
@@ -45,6 +57,8 @@ fun CreateRecipeScreen(onCreate: (recipe: Recipe) -> Unit) {
     ) {
         val title = remember { mutableStateOf("") }
         val rating = remember { mutableStateOf(0) }
+        val bitmap = remember { mutableStateOf<Bitmap?>(null) }
+
         val instructions = remember { mutableStateOf(listOf<Instruction>()) }
 
         var showAddDialog by remember { mutableStateOf(false) }
@@ -64,7 +78,7 @@ fun CreateRecipeScreen(onCreate: (recipe: Recipe) -> Unit) {
         }
 
         Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.fillMaxSize()) {
-            MainInputSection(rating, title)
+            MainInputSection(rating, title, bitmap)
         }
 
         if (showAddDialog) {
@@ -97,7 +111,7 @@ fun CreateRecipeScreen(onCreate: (recipe: Recipe) -> Unit) {
                 },
                 defaultText = instructions.value[editedInstructionIndex].text,
                 defaultTime = with(instructions.value[editedInstructionIndex].time) {
-                    if(this == null) {
+                    if (this == null) {
                         null
                     } else {
                         minuteToHourMinute(this)
@@ -109,7 +123,15 @@ fun CreateRecipeScreen(onCreate: (recipe: Recipe) -> Unit) {
 }
 
 @Composable
-private fun MainInputSection(rating: MutableState<Int>, title: MutableState<String>) {
+private fun MainInputSection(rating: MutableState<Int>, title: MutableState<String>, bitmap: MutableState<Bitmap?>) {
+//    var imageUri by remember { mutableStateOf<Uri?>(null) }
+//    val context = LocalContext.current
+
+//    val launcher = rememberLauncherForActivityResult(contract =
+//    ActivityResultContracts.GetContent()) { uri: Uri? ->
+//        imageUri = uri
+//    }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -141,7 +163,6 @@ private fun MainInputSection(rating: MutableState<Int>, title: MutableState<Stri
             }
         }
 
-
         Column {
             DashedRow()
 
@@ -151,7 +172,31 @@ private fun MainInputSection(rating: MutableState<Int>, title: MutableState<Stri
                     .fillMaxWidth()
                     .padding(top = 8.dp, bottom = 8.dp)
                     .clickable {
+//                        launcher.launch("image/*")
+//
+//                        imageUri?.let {
+//                            if (Build.VERSION.SDK_INT < 28) {
+//                                bitmap.value = MediaStore.Images
+//                                    .Media.getBitmap(context.contentResolver,it)
+//
+//                            } else {
+//                                val source = ImageDecoder
+//                                    .createSource(context.contentResolver,it)
+//                                bitmap.value = ImageDecoder.decodeBitmap(source)
+//                            }
 
+//                            bitmap.value?.let {  btm ->
+//                                val outputStream: FileOutputStream?
+//                                try {
+//                                    outputStream = context.openFileOutput("${}.png", Context.MODE_PRIVATE)
+//                                    btm.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+//                                    outputStream.flush()
+//                                    outputStream.close()
+//                                } catch (e: Exception) {
+//                                    e.printStackTrace()
+//                                }
+//                            }
+//                        }
                     }
             ) {
                 Image(
@@ -244,6 +289,7 @@ private fun InstructionInputSection(
             .height(getScreenHeight() - MAIN_INPUT_SCREEN_SIZE)
             .border(1.dp, AppColor.BACKGROUND_SECONDARY, shape = RoundedCornerShape(30.dp))
             .clip(RoundedCornerShape(30.dp))
+            .background(AppColor.BACKGROUND_PRIMARY_DARK)
     ) {
         Row(
             horizontalArrangement = Arrangement.End,
@@ -371,6 +417,115 @@ private fun InstructionInputSection(
 
 @Composable
 private fun ToolAndIngredientInputSection() {
+    val minHeight = 50.dp
+    val maxHeight = getScreenHeight() - MAIN_INPUT_SCREEN_SIZE
+    val topRowHeight = 31.dp
+
+    var currentHeight by remember { mutableStateOf(minHeight) }
+    var selectedTab by remember { mutableStateOf("tools") }
+
+    val animateUp = {
+        Thread(Runnable {
+            while (currentHeight < maxHeight) {
+                Thread.sleep(1.toLong())
+                currentHeight += 10.dp
+            }
+        }).start()
+    }
+
+    val animateDown = {
+        Thread(Runnable {
+            while (currentHeight > minHeight) {
+                Thread.sleep(1.toLong())
+                currentHeight -= 10.dp
+            }
+        }).start()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(currentHeight)
+            .clip(RoundedCornerShape(30.dp))
+            .clickable { },
+        contentAlignment = Alignment.BottomCenter
+    ) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(30.dp))
+                .background(AppColor.BACKGROUND_PRIMARY_DARKER)
+                .border(1.dp, AppColor.BACKGROUND_SECONDARY, shape = RoundedCornerShape(30.dp)),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 7.dp)
+            ) {
+                Text(
+                    text = "Tools",
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    textDecoration = if (selectedTab == "tools") TextDecoration.Underline else null,
+                    modifier = Modifier.clickable {
+                        selectedTab = "tools"
+                    }
+                )
+
+                Text(
+                    text = "Ingredients",
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    textDecoration = if (selectedTab == "ingredients") TextDecoration.Underline else null,
+                    modifier = Modifier
+                        .clickable { selectedTab = "ingredients" }
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = 15.dp,
+                        top = if (currentHeight <= minHeight) 15.dp
+                        else 5.dp
+                    )
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.directional_arrow),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .rotate(
+                            if (currentHeight <= minHeight) 90f
+                            else 270f
+                        )
+                        .clickable {
+                            if (currentHeight <= minHeight) animateUp()
+                            else animateDown()
+                        }
+
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(currentHeight - topRowHeight)
+                .background(AppColor.BACKGROUND_PRIMARY_DARKER)
+        ) {
+
+        }
+
+    }
 
 }
 
@@ -547,6 +702,7 @@ private fun InstructionAlertDialog(
                     if (it.isNotEmpty() && requireText) requireText = false
                     text = it
                 },
+                textStyle = TextStyle(fontSize = 20.sp, color = Color.Black),
                 modifier = Modifier
                     .weight(1f)
                     .height(100.dp)
@@ -591,6 +747,7 @@ private fun InstructionAlertDialog(
                     onValueChange = {
                         hours = it.toIntOrNull() ?: hours
                     },
+                    textStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
                     modifier = Modifier
                         .width(40.dp)
                         .height(45.dp)
@@ -629,6 +786,7 @@ private fun InstructionAlertDialog(
                     onValueChange = {
                         minutes = it.toIntOrNull() ?: minutes
                     },
+                    textStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
                     modifier = Modifier
                         .width(40.dp)
                         .height(45.dp)

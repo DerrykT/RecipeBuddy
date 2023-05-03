@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
 
         DatabaseManager.initDatabase(this)
 
-        DatabaseManager.populate()
+        DatabaseManager.populate(this)
 
         setContent {
             Box() {

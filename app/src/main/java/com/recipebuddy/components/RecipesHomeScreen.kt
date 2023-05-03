@@ -15,11 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -31,12 +33,13 @@ import com.recipebuddy.util.*
 
 @Composable
 fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
+    var isCreatingTag by remember { mutableStateOf(false) }
+    val searchTagsState = remember { mutableStateOf(listOf<Tag_List>()) }
+
     Box {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            var isCreatingTag by remember { mutableStateOf(false) }
-
             // Initial top spacing
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -44,20 +47,8 @@ fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
             SearchBar()
 
             // Tags Row
-            TagsRow() {
+            TagsRow(searchTagsState) {
                 isCreatingTag = true
-            }
-
-            if (isCreatingTag) {
-                CreateTagRow(
-                    onCreate = { tagName ->
-                        // Add tag
-                        isCreatingTag = false
-                    },
-                    onCancel = {
-                        isCreatingTag = false
-                    }
-                )
             }
 
             Spacer(modifier = Modifier.height(5.dp))
@@ -92,6 +83,16 @@ fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
                 )
             }
         }
+
+        if (isCreatingTag) {
+            AddTagAlertDialog(
+                onConfirm = { tag ->
+                    persistTag(Tag_List(tag), searchTagsState)
+                    isCreatingTag = !isCreatingTag
+                },
+                onCancel = { isCreatingTag = !isCreatingTag })
+        }
+
     }
 }
 
@@ -137,9 +138,7 @@ fun SearchBar() {
 }
 
 @Composable
-fun TagsRow(onClick: () -> Unit) {
-    val searchTags = remember { mutableStateOf(listOf<Tag_List>()) }
-
+fun TagsRow(searchTags: MutableState<List<Tag_List>>, onClick: () -> Unit) {
     fetchSearchTags(searchTags)
 
     Row(
@@ -167,66 +166,6 @@ fun TagsRow(onClick: () -> Unit) {
         ) {
             Text(text = "Add Tags", fontSize = 12.sp, color = Color.White)
         }
-    }
-}
-
-@Composable
-fun CreateTagRow(onCreate: (tagName: String) -> Unit, onCancel: () -> Unit) {
-    var tagName by remember { mutableStateOf("") }
-    var requireText by remember { mutableStateOf(false) }
-
-    Row(
-        horizontalArrangement = Arrangement.End,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 25.dp)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.green_check),
-            contentDescription = ""
-        )
-
-        Image(
-            painter = painterResource(id = R.drawable.green_check),
-            contentDescription = ""
-        )
-
-        BasicTextField(
-            value = tagName,
-            onValueChange = {
-
-            },
-            modifier = Modifier
-                .weight(1f)
-                .height(100.dp)
-                .padding(15.dp)
-                .clip(
-                    RoundedCornerShape(20.dp)
-                )
-                .border(
-                    width = 2.dp,
-                    if (requireText) Color.Red else AppColor.BUTTON_OUTLINE,
-                    RoundedCornerShape(20.dp)
-                ),
-            enabled = true,
-            decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(AppColor.BACKGROUND_SECONDARY)
-                        .padding(all = 10.dp),
-                ) {
-                    if (tagName == "") {
-                        Text(
-                            text = "Name",
-                            color = AppColor.BACKGROUND_PRIMARY,
-                            fontSize = 20.sp
-                        )
-                    }
-                    innerTextField()
-                }
-            }
-        )
     }
 }
 
@@ -292,7 +231,7 @@ fun RecipeScrollableItem(recipe: Recipe, index: Int) {
                 .height(130.dp)
         ) {
             Image(
-                painter = painterResource(id = recipe.imageRes),
+                bitmap = recipe.imageBitmap.asImageBitmap(),
                 contentDescription = "",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -415,7 +354,10 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
             ) {
                 recipe.ingredients.forEach { ingredient ->
                     item {
-                        Text(text = "${ingredient.Quantity} ${ingredient.Unit} ${ingredient.IngredientName}", fontSize = 14.sp)
+                        Text(
+                            text = "${ingredient.Quantity} ${ingredient.Unit} ${ingredient.IngredientName}",
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
@@ -455,5 +397,136 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
         }
 
 
+    }
+}
+
+@Composable
+private fun AddTagAlertDialog(
+    onConfirm: (text: String) -> Unit,
+    onCancel: () -> Unit
+) {
+    var text by remember { mutableStateOf("") }
+    var requireText by remember { mutableStateOf(false) }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.Black.copy(alpha = 0.6f))
+            .clickable {}
+    ) {
+        Column(
+            modifier = Modifier
+                .width(400.dp)
+                .height(180.dp)
+                .padding(15.dp)
+                .clip(RoundedCornerShape(15.dp))
+                .background(Color.LightGray)
+                .border(2.dp, Color.Black, RoundedCornerShape(15.dp)),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Spacer(modifier = Modifier.height(5.dp))
+
+            BasicTextField(
+                value = text,
+                onValueChange = {
+                    if (it.isNotEmpty() && requireText) requireText = false
+                    text = it
+                },
+                textStyle = TextStyle(fontSize = 20.sp, color = Color.Black),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(40.dp)
+                    .padding(15.dp)
+                    .clip(
+                        RoundedCornerShape(20.dp)
+                    )
+                    .border(
+                        width = 2.dp,
+                        if (requireText) Color.Red else AppColor.BUTTON_OUTLINE,
+                        RoundedCornerShape(20.dp)
+                    ),
+                enabled = true,
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(AppColor.BACKGROUND_SECONDARY)
+                            .padding(all = 10.dp),
+                    ) {
+                        if (text == "") {
+                            Text(
+                                text = "Name...",
+                                color = AppColor.BACKGROUND_PRIMARY,
+                                fontSize = 20.sp
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
+            ) {
+                Button(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .height(33.dp)
+                        .width(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = Color.Red
+                    ),
+                    contentPadding = PaddingValues(4.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    onClick = onCancel
+                ) {
+                    Text(
+                        text =
+                        "Cancel",
+                        color = Color.Black,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Button(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .height(33.dp)
+                        .width(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        Color.Green
+                    ),
+                    contentPadding = PaddingValues(4.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    onClick = {
+                        if (text.isNotEmpty()) {
+                            onConfirm(text)
+                        } else {
+                            requireText = true
+                        }
+                    }
+                ) {
+                    Text(
+                        text = "Confirm",
+                        color = Color.Black,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+        }
     }
 }
