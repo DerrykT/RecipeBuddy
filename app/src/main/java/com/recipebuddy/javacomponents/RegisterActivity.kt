@@ -43,8 +43,6 @@ class RegisterActivity : Activity() {
             val username: String = usernameEdt.getText().toString()
             val password: String = passwordEdt.getText().toString()
 
-            Toast.makeText(this, username, Toast.LENGTH_SHORT).show()
-
             // check if inputs are empty and display message if they are
             if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please enter all the data.", Toast.LENGTH_SHORT).show()
