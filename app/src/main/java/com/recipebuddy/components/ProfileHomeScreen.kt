@@ -2,7 +2,9 @@ package com.recipebuddy.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -15,8 +17,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.recipebuddy.R
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.getUsername
+import com.recipebuddy.util.removeIngredient
+import com.recipebuddy.util.removeTag
 
 @Composable
 fun ProfileHomeScreen() {
@@ -134,6 +139,38 @@ fun ProfileHomeScreen() {
                         modifier = Modifier.padding(5.dp)
                     ) {
                         Text(text = "Edit", fontSize = 18.sp, color = Color.White)
+                    }
+                }
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape = RoundedCornerShape(20.dp))
+                .background(AppColor.BACKGROUND_PRIMARY)
+                .padding(13.dp)
+        ) {
+            ScreenManager.searchTagsState.value.forEach { tag ->
+                item {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(text = tag.text, fontSize = 25.sp)
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.delete),
+                                contentDescription = "",
+                                modifier = Modifier
+                                    .clickable {
+                                        ScreenManager.searchTagsState.value = ScreenManager.searchTagsState.value.filter { it.text != tag.text }
+
+                                        removeTag(tag.text)
+                                    }
+                            )
+                        }
                     }
                 }
             }
