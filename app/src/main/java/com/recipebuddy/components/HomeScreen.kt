@@ -50,7 +50,7 @@ object ScreenManager {
 fun HomeScreen() {
     val recipes = remember { mutableStateOf(listOf<Recipe>()) }
 
-    fetchFormattedRecipes(recipes)
+//    fetchFormattedRecipes(recipes)
 
     Column(
         modifier = Modifier
