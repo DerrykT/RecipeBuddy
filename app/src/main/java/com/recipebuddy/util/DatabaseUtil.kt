@@ -264,6 +264,16 @@ object DatabaseManager {
     }
 }
 
+fun formatRecipes(unformattedRecipes: List<Recipe_Info>): List<Recipe> {
+    val formattedRecipes = mutableListOf<Recipe>()
+
+    unformattedRecipes.forEach {
+        formattedRecipes.add(formatRecipe(it))
+    }
+
+    return formattedRecipes
+}
+
 fun formatRecipe(unformattedRecipe: Recipe_Info): Recipe {
     val ingredients = db?.readData()?.getRecipeIngredients(unformattedRecipe.RecipeName) ?: listOf()
     val tags = db?.readData()?.getTagsByRecipeName(unformattedRecipe.RecipeName) ?: listOf()
