@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
         DatabaseManager.initDatabase(this)
 
-//        DatabaseManager.populate(this)
+        DatabaseManager.populate(this)
 
         setContent {
             Box() {
