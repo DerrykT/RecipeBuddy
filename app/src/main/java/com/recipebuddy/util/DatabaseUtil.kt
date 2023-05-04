@@ -8,7 +8,6 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.room.Room
 import com.recipebuddy.R
-import com.recipebuddy.components.ScreenManager
 import com.recipebuddy.database.*
 import com.recipebuddy.util.DatabaseManager.db
 import kotlinx.coroutines.*

@@ -1,5 +1,6 @@
 package com.recipebuddy
 
+import android.content.Intent
 import android.database.CursorWindow
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -9,20 +10,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.recipebuddy.components.HomeScreen
+import com.recipebuddy.components.ScreenManager
+import com.recipebuddy.javacomponents.LoginActivity
+import com.recipebuddy.javacomponents.SaveSharedPreference
 import com.recipebuddy.util.DatabaseManager
-import java.io.ByteArrayOutputStream
+import com.recipebuddy.database.*
 
 lateinit var DEFAULT_BITMAP: Bitmap
 
 class MainActivity : ComponentActivity() {
+    var db: AppDatabase? = null
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val db = AppDatabase.getInstance(this);
 
         DEFAULT_BITMAP = BitmapFactory.decodeResource(
             this.resources,
@@ -41,11 +43,17 @@ class MainActivity : ComponentActivity() {
 
         DatabaseManager.populate(this)
 
-        setContent {
-            Box() {
-                HomeScreen()
-            }
+        if (SaveSharedPreference.getUserName(this@MainActivity)?.length ?: null == 0) {
+            val i = Intent(this@MainActivity, LoginActivity::class.java)
+            startActivity(i)
         }
+            ScreenManager.selectedHomeScreen = ScreenManager.RECIPE_HOME_SCREEN
+
+            setContent {
+                Box() {
+                    HomeScreen()
+                }
+            }
 
     }
 }
