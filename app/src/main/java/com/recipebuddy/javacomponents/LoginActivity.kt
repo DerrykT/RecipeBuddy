@@ -44,7 +44,6 @@ class LoginActivity : Activity() {
             }
             // if either have spaces, replace with underscores to make sure true names match
             if (username.matches(".*\\s.*".toRegex()) || password.matches(".*\\s.*".toRegex())) {
-                Toast.makeText(this@LoginActivity, "spaces", Toast.LENGTH_SHORT).show()
                 val spacedname = username.replace("\\s+".toRegex(), "_")
                 val spacedpass = password.replace("\\s+".toRegex(), "_")
 
