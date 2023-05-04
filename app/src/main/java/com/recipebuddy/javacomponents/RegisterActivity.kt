@@ -2,15 +2,24 @@ package com.recipebuddy.javacomponents
 
 import android.app.Activity
 import android.content.Intent
+import android.os.AsyncTask
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
 import com.recipebuddy.R
 import com.recipebuddy.components.AppDatabase
 import com.recipebuddy.components.Insertion
 import com.recipebuddy.components.Users
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.lang.Boolean.TRUE
+import kotlin.concurrent.thread
+
+
 
 class RegisterActivity : Activity() {
     lateinit var db: AppDatabase
@@ -58,15 +67,15 @@ class RegisterActivity : Activity() {
                 Toast.makeText(this, "Username and password must be 5 or more characters in length.", Toast.LENGTH_SHORT).show()
                 return@OnClickListener
             }
-            val user : Users = Users(username, password)
+            val user = Users(username, password)
 
             Thread {
                 dao.insertUser(user)
             }.start()
+            Thread().interrupt()
 
             SaveSharedPreference.setUserName(this, username);
             SaveSharedPreference.setPassword(this, password);
-
             // send user back to login
             val e = Intent(this@RegisterActivity, LoginActivity::class.java)
             startActivity(e)
@@ -75,6 +84,7 @@ class RegisterActivity : Activity() {
             Toast.makeText(this@RegisterActivity, "User has been added.", Toast.LENGTH_SHORT).show()
             usernameEdt.setText("")
             passwordEdt.setText("")
+
         })
     }
 }
