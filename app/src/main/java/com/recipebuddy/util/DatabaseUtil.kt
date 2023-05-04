@@ -263,57 +263,68 @@ object DatabaseManager {
     }
 }
 
+fun formatRecipes(unformattedRecipes: List<Recipe_Info>): List<Recipe> {
+    val formattedRecipes = mutableListOf<Recipe>()
 
-fun fetchFormattedRecipes(recipes: MutableState<List<Recipe>>) {
-    GlobalScope.launch(Dispatchers.IO) {
-        val unformattedRecipe = db?.readData()?.getRecipes() ?: return@launch
-        val formattedRecipes = mutableListOf<Recipe>()
+    unformattedRecipes.forEach {
+        formattedRecipes.add(formatRecipe(it))
+    }
 
-        unformattedRecipe.forEach {
-            val ingredients = db?.readData()?.getRecipeIngredients(it.RecipeName) ?: listOf()
-            val tags = db?.readData()?.getTagsByRecipeName(it.RecipeName) ?: listOf()
-            val instructions = it.RecipeInstructions.split('*')
-            val timers = it.RecipeTimers.split('*')
-            val formattedInstructions = mutableListOf<Instruction>()
-            var totalTime = 0
-            val tools = it.Tools.split('*')
+    return formattedRecipes
+}
 
-            instructions.forEachIndexed { index, text ->
-                totalTime += timers[index].toIntOrNull() ?: 0
-                formattedInstructions.add(
-                    Instruction(
-                        text,
-                        if (timers[index].toInt() == 0) null else timers[index].toInt()
-                    )
-                )
-            }
+fun formatRecipe(unformattedRecipe: Recipe_Info): Recipe {
+    val ingredients = db?.readData()?.getRecipeIngredients(unformattedRecipe.RecipeName) ?: listOf()
+    val tags = db?.readData()?.getTagsByRecipeName(unformattedRecipe.RecipeName) ?: listOf()
+    val instructions = unformattedRecipe.RecipeInstructions.split('*')
+    val timers = unformattedRecipe.RecipeTimers.split('*')
+    val formattedInstructions = mutableListOf<Instruction>()
+    var totalTime = 0
+    val tools = unformattedRecipe.Tools.split('*')
 
-            formattedRecipes.add(
-                Recipe(
-                    it.RecipeName,
-                    it.RecipeRating,
-                    it.Time,
-                    tags,
-                    ingredients,
-                    tools,
-                    formattedInstructions,
-                    BitmapFactory.decodeByteArray(it.Picture, 0, it.Picture.size)
-                )
+    instructions.forEachIndexed { index, text ->
+        totalTime += timers[index].toIntOrNull() ?: 0
+        formattedInstructions.add(
+            Instruction(
+                text,
+                if (timers[index].toInt() == 0) null else timers[index].toInt()
             )
-        }
+        )
+    }
+
+    return Recipe(
+        unformattedRecipe.RecipeName,
+        unformattedRecipe.RecipeRating,
+        unformattedRecipe.Time,
+        tags,
+        ingredients,
+        tools,
+        formattedInstructions,
+        BitmapFactory.decodeByteArray(unformattedRecipe.Picture, 0, unformattedRecipe.Picture.size)
+    )
+
+}
+
+fun fetchFormattedRecipes(displayedRecipes: MutableState<List<Recipe>>, originalRecipes: MutableState<List<Recipe>>) {
+    GlobalScope.launch(Dispatchers.IO) {
+        val unformattedRecipes = db?.readData()?.getRecipes() ?: return@launch
+        val formattedRecipes = formatRecipes(unformattedRecipes)
 
         withContext(Dispatchers.Main) {
-            recipes.value = formattedRecipes
+            displayedRecipes.value = formattedRecipes
+            originalRecipes.value = formattedRecipes
         }
     }
 }
 
-fun fetchSearchTags(tagsState: MutableState<List<Tag_List>>) {
+fun fetchSearchTags(tagsState: MutableState<List<RecipeTag>>) {
     GlobalScope.launch(Dispatchers.IO) {
         val fetchedTags = db?.readData()?.getTags() ?: listOf()
 
         withContext(Dispatchers.Main) {
-            tagsState.value = fetchedTags
+            tagsState.value = fetchedTags.map {
+                RecipeTag(it.Tag, false)
+            }
         }
     }
 }
@@ -363,12 +374,12 @@ fun persistIngredient(
     }
 }
 
-fun persistTag(newTag: Tag_List, tagsState: MutableState<List<Tag_List>>) {
+fun persistTag(newTag: Tag_List, tagsState: MutableState<List<RecipeTag>>) {
     GlobalScope.launch(Dispatchers.IO) {
         db?.insertion()?.insertTagList(newTag)
 
         withContext(Dispatchers.Main) {
-            tagsState.value = listOf(newTag) + tagsState.value
+            tagsState.value = listOf(RecipeTag(newTag.Tag, false)) + tagsState.value
         }
     }
 }
@@ -385,3 +396,5 @@ data class Recipe(
 )
 
 data class Instruction(val text: String, val time: Int?)
+
+data class RecipeTag(val text: String, var isSelected: Boolean)

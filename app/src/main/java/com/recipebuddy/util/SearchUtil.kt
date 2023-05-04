@@ -1,21 +1,13 @@
 package com.recipebuddy.util
 
+import androidx.compose.runtime.MutableState
+import com.recipebuddy.database.*
 import com.recipebuddy.util.DatabaseManager.db
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-//fun sortByName (recipeName: String?): List<Recipe>? {
-//    return db?.readData()?.getRecipeListByRecipeName(recipeName)
-//}
-//
-//fun sortByRating (rating: Int?): List<Recipe>? {
-//    return db?.readData()?.getRecipeListByRating(rating)
-//}
-//
-//fun sortByTag (tag: String?) {
-//    val recipeNamesList = tag?.let { db?.readData()?.getRecipeNamesByTag(it) }
-//
-//    if (recipeNamesList != null) {
-//        for (element in recipeNamesList) {
-//            sortByName(element)
-//        }
-//    }
-//}
+fun sortByName (recipePrefix: String, recipes: List<Recipe>) = recipes.filter { it.name.startsWith(recipePrefix) }
+
+fun sortByTag (tag: String, recipes: List<Recipe>) = recipes.filter { it.tags.contains(tag) }

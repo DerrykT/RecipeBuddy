@@ -1,9 +1,5 @@
 package com.recipebuddy.components
 
-import android.view.MotionEvent
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,12 +15,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -40,9 +34,12 @@ import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.*
 
 @Composable
-fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
+fun RecipeHomeScreen(
+    displayedRecipes: MutableState<List<Recipe>>,
+    originalRecipes: MutableState<List<Recipe>>,
+    searchTagsState: MutableState<List<RecipeTag>>
+) {
     var isCreatingTag by remember { mutableStateOf(false) }
-    val searchTagsState = remember { mutableStateOf(listOf<Tag_List>()) }
 
     Box {
         Column(
@@ -52,17 +49,17 @@ fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
             Spacer(modifier = Modifier.height(10.dp))
 
             // Search Bar
-            SearchBar(recipes)
+            SearchBar(displayedRecipes, originalRecipes)
 
             // Tags Row
-            TagsRow(searchTagsState) {
-                isCreatingTag = true
+            TagsRow(searchTagsState, displayedRecipes, originalRecipes) {
+                isCreatingTag = !isCreatingTag
             }
 
             Spacer(modifier = Modifier.height(5.dp))
 
             // Recipe List
-            RecipeScrollable(recipes)
+            RecipeScrollable(displayedRecipes)
         }
 
         Box(
@@ -105,7 +102,10 @@ fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
 }
 
 @Composable
-fun SearchBar(recipes: MutableState<List<Recipe>>) {
+fun SearchBar(
+    displayedRecipes: MutableState<List<Recipe>>,
+    originalRecipes: MutableState<List<Recipe>>
+) {
     var searchText by remember { mutableStateOf("") }
 
     TextField(
@@ -113,7 +113,7 @@ fun SearchBar(recipes: MutableState<List<Recipe>>) {
         singleLine = true,
         onValueChange = { newText ->
             searchText = newText
-            //recipes.value = sortByName(searchText)
+            displayedRecipes.value = sortByName(searchText, originalRecipes.value)
         },
         leadingIcon = {
             Icon(
@@ -134,55 +134,14 @@ fun SearchBar(recipes: MutableState<List<Recipe>>) {
     )
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun RatingSelect(modifier: Modifier = Modifier, rating: Int?, recipes: MutableState<List<Recipe>?>) {
-    var ratingState by remember {
-        mutableStateOf(rating)
-    }
-
-    var selected by remember {
-        mutableStateOf(false)
-    }
-    val size by animateDpAsState(
-        targetValue = if (selected) 50.dp else 45.dp,
-        spring(Spring.DampingRatioMediumBouncy)
-    )
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        for (i in 1..5) {
-            Icon(
-                painter = painterResource(id = R.drawable.star_icon),
-                contentDescription = "star",
-                modifier = modifier
-                    .width(size)
-                    .height(size)
-                    .pointerInteropFilter {
-                        when (it.action) {
-                            MotionEvent.ACTION_DOWN -> {
-                                selected = true
-                                ratingState = i
-                                //recipes.value = sortByRating(ratingState)
-                            }
-                            MotionEvent.ACTION_UP -> {
-                                selected = false
-                            }
-                        }
-                        true
-                    },
-                tint = if (i <= ratingState!!) Color(0xfffad428) else Color(0xFF757574)
-            )
-        }
-    }
-}
-
-
-@Composable
-fun TagsRow(searchTags: MutableState<List<Tag_List>>, onClick: () -> Unit) {
-    fetchSearchTags(searchTags)
+fun TagsRow(
+    searchTags: MutableState<List<RecipeTag>>,
+    displayedRecipes: MutableState<List<Recipe>>,
+    originalRecipes: MutableState<List<Recipe>>,
+    onClick: () -> Unit
+) {
+    val selectedTagNames by remember { mutableStateOf(mutableSetOf<String>()) }
 
     Row(
         modifier = Modifier
@@ -195,16 +154,38 @@ fun TagsRow(searchTags: MutableState<List<Tag_List>>, onClick: () -> Unit) {
                 .weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            searchTags.value.forEach { tag ->
+            searchTags.value.forEachIndexed { index, tag ->
                 item {
-                    TagButton(text = tag.Tag) {}
+                    TagButton(tag.text, searchTags.value[index].isSelected) {
+                        if (tag.isSelected) {
+                            searchTags.value[index].isSelected = false
+
+                            selectedTagNames.remove(tag.text)
+                            if (selectedTagNames.size == 0) {
+                                displayedRecipes.value = originalRecipes.value
+                            } else {
+                                var tempList = originalRecipes.value
+                                selectedTagNames.forEach {
+                                    tempList = sortByTag(it, tempList)
+                                }
+                                displayedRecipes.value = tempList
+                            }
+                        } else {
+                            searchTags.value[index].isSelected = true
+
+                            selectedTagNames.add(tag.text)
+                            displayedRecipes.value = sortByTag(tag.text, displayedRecipes.value)
+                        }
+                    }
                 }
             }
         }
 
         // Add Tags Button
         Button(
-            onClick = onClick,
+            onClick = {
+                onClick()
+            },
             colors = ButtonDefaults.buttonColors(Color.DarkGray)
         ) {
             Text(text = "Add Tags", fontSize = 12.sp, color = Color.White)
@@ -215,19 +196,38 @@ fun TagsRow(searchTags: MutableState<List<Tag_List>>, onClick: () -> Unit) {
 @Composable
 fun TagButton(
     text: String,
+    startingSelectState: Boolean,
     onClick: () -> Unit
 ) {
+    var isSelected by remember { mutableStateOf(startingSelectState) }
     Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(AppColor.TAG_BUTTON_GREEN),
+        onClick = {
+            isSelected = !isSelected
+            onClick()
+        },
+        colors = ButtonDefaults.buttonColors(
+            if (isSelected) {
+                AppColor.TAG_ICON_LIGHT_ORANGE
+            } else {
+                AppColor.TAG_BUTTON_GREEN
+            }
+        ),
         shape = RoundedCornerShape(50.dp)
     ) {
-        Text(text = text, fontSize = 12.sp, color = Color.White)
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            color = if (isSelected) {
+                Color.Black
+            } else {
+                Color.White
+            }
+        )
     }
 }
 
 @Composable
-fun RecipeScrollable(recipes: MutableState<List<Recipe>>) {
+fun RecipeScrollable(displayedRecipes: MutableState<List<Recipe>>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -235,7 +235,7 @@ fun RecipeScrollable(recipes: MutableState<List<Recipe>>) {
             .padding(start = 20.dp, end = 20.dp),
         verticalArrangement = Arrangement.spacedBy(25.dp)
     ) {
-        recipes.value.forEachIndexed { index, recipe ->
+        displayedRecipes.value.forEachIndexed { index, recipe ->
             item {
                 RecipeScrollableItem(recipe = recipe, index = index)
             }

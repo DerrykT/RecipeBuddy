@@ -121,7 +121,7 @@ interface ReadData{
     @Query("SELECT ToolName FROM Tools_List")
     fun getTools(): List<String>
 
-    @Query("SELECT tl.tag " +
+    @Query("SELECT DISTINCT rt.tag " +
             "FROM Recipe_Info ri, Tag_List tl, Recipe_Tags rt " +
             "WHERE ri.recipeName = :searchName " +
             "AND rt.RecipeName = ri.RecipeName ")
@@ -132,23 +132,23 @@ interface ReadData{
             "Where Username = :searchName")
     fun getPassword(searchName: String): String
 
-//    //get list of recipe names that contain a specific tag
-//    @Query ("SELECT rt.RecipeName " +
-//            "FROM Recipe_Tags rt " +
-//            "WHERE rt.Tag = :selectedTag ")
-//    fun getRecipeNamesByTag(selectedTag: String): List<String>
-//
-//    //get list of recipes from recipe_info where recipe name = searchName
-//    @Query("SELECT * " +
-//            "FROM Recipe_Info ri " +
-//            "WHERE ri.RecipeName = :searchName ")
-//    fun getRecipeListByRecipeName(searchName: String?): List<Recipe>
-//
-//    //get list of recipes from recipe_info where rating = passedRating
-//    @Query("SELECT * " +
-//            "FROM Recipe_Info ri " +
-//            "WHERE ri.RecipeRating >= :passedRating ")
-//    fun getRecipeListByRating(passedRating: Int?): List<Recipe>
+    //get list of recipe names that contain a specific tag
+    @Query ("SELECT rt.RecipeName " +
+            "FROM Recipe_Tags rt " +
+            "WHERE rt.Tag = :selectedTag ")
+    fun getRecipeNamesByTag(selectedTag: String?): List<String>
+
+    //get list of recipes from recipe_info where recipe name = searchName
+    @Query("SELECT * " +
+            "FROM Recipe_Info ri " +
+            "WHERE LOWER(ri.RecipeName) LIKE :searchName||'%'")
+    fun getRecipeListByRecipeName(searchName: String?): List<Recipe_Info>
+
+    //get list of recipes from recipe_info where rating = passedRating
+    @Query("SELECT * " +
+            "FROM Recipe_Info ri " +
+            "WHERE ri.RecipeRating >= :passedRating ")
+    fun getRecipeListByRating(passedRating: Int?): List<Recipe_Info>
 }
 
 data class RecipeIngredientList(
