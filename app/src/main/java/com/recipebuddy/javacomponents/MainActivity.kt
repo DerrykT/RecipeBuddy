@@ -22,7 +22,6 @@ class MainActivity : AppCompatActivity() {
         if (SaveSharedPreference.getUserName(this@MainActivity)?.length ?: null == 0) {
             val i = Intent(this@MainActivity, LoginActivity::class.java)
             startActivity(i)
-            setContentView(R.layout.activity_main)
         } else {
             val s = Intent(this@MainActivity, KotlinMainActivity::class.java)
             startActivity(s)
