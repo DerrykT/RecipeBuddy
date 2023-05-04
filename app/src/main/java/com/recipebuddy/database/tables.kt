@@ -1,5 +1,6 @@
 package com.recipebuddy.database
 
+import android.graphics.Bitmap
 import androidx.room.*
 import com.recipebuddy.util.Recipe
 
@@ -11,7 +12,7 @@ data class Recipe_Info(
     val RecipeRating: Int,
     val AssociatedUser: String,
     val Time: Int,
-    val Picture: Int,
+    val Picture: ByteArray,
     val Tools: String
 )
 
@@ -89,7 +90,7 @@ interface Insertion {
     Tag_List::class,
     Recipe_Tags::class,
     Users::class,
-], version = 2)
+], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun insertion(): Insertion
     abstract fun readData(): ReadData
@@ -126,28 +127,28 @@ interface ReadData{
             "AND rt.RecipeName = ri.RecipeName ")
     fun getTagsByRecipeName(searchName: String): List<String>
 
-    //get list of recipe names that contain a specific tag
-    @Query ("SELECT rt.RecipeName " +
-             "FROM Recipe_Tags rt " +
-             "WHERE rt.Tag = :selectedTag ")
-    fun getRecipeNamesByTag(selectedTag: String): List<String>
-
-    //get list of recipes from recipe_info where recipe name = searchName
-    @Query("SELECT * " +
-            "FROM Recipe_Info ri " +
-            "WHERE ri.RecipeName = :searchName ")
-    fun getRecipeListByRecipeName(searchName: String?): List<Recipe>
-
-    //get list of recipes from recipe_info where rating = passedRating
-    @Query("SELECT * " +
-            "FROM Recipe_Info ri " +
-            "WHERE ri.RecipeRating >= :passedRating ")
-    fun getRecipeListByRating(passedRating: Int?): List<Recipe>
-
     @Query("SELECT Password " +
             "FROM Users " +
             "Where Username = :searchName")
     fun getPassword(searchName: String): String
+
+//    //get list of recipe names that contain a specific tag
+//    @Query ("SELECT rt.RecipeName " +
+//            "FROM Recipe_Tags rt " +
+//            "WHERE rt.Tag = :selectedTag ")
+//    fun getRecipeNamesByTag(selectedTag: String): List<String>
+//
+//    //get list of recipes from recipe_info where recipe name = searchName
+//    @Query("SELECT * " +
+//            "FROM Recipe_Info ri " +
+//            "WHERE ri.RecipeName = :searchName ")
+//    fun getRecipeListByRecipeName(searchName: String?): List<Recipe>
+//
+//    //get list of recipes from recipe_info where rating = passedRating
+//    @Query("SELECT * " +
+//            "FROM Recipe_Info ri " +
+//            "WHERE ri.RecipeRating >= :passedRating ")
+//    fun getRecipeListByRating(passedRating: Int?): List<Recipe>
 }
 
 data class RecipeIngredientList(

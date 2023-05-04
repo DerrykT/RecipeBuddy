@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,13 +23,17 @@ import com.recipebuddy.components.ScreenManager.PANTRY_HOME_SCREEN
 import com.recipebuddy.components.ScreenManager.PROFILE_HOME_SCREEN
 import com.recipebuddy.components.ScreenManager.RECIPE_COOKING_SCREEN
 import com.recipebuddy.components.ScreenManager.RECIPE_HOME_SCREEN
+import com.recipebuddy.components.ScreenManager.lastRecipePageScreen
 import com.recipebuddy.components.ScreenManager.selectedRecipeIndex
-import com.recipebuddy.components.ScreenManager.selectedScreen
+import com.recipebuddy.components.ScreenManager.selectedHomeScreen
 import com.recipebuddy.ui.resources.AppColor
-import com.recipebuddy.util.TempDataObject
+import com.recipebuddy.util.Recipe
+import com.recipebuddy.util.fetchFormattedRecipes
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 object ScreenManager {
-    var selectedScreen by mutableStateOf(0)
+    var selectedHomeScreen by mutableStateOf(0)
+    var lastRecipePageScreen by mutableStateOf(0)
     var selectedRecipeIndex by mutableStateOf(-1)
 
     const val RECIPE_HOME_SCREEN = 0
@@ -43,64 +48,101 @@ object ScreenManager {
 
 @Composable
 fun HomeScreen() {
+    val recipes = remember { mutableStateOf(listOf<Recipe>()) }
+
+    fetchFormattedRecipes(recipes)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColor.BACKGROUND_PRIMARY)
     ) {
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(AppColor.BUTTON_OUTLINE),
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            HomeScreenTab(
-                onClick = { selectedScreen = RECIPE_HOME_SCREEN },
-                modifier = Modifier.weight(1f),
-                selected = (selectedScreen == RECIPE_HOME_SCREEN || selectedScreen == RECIPE_COOKING_SCREEN || selectedScreen == CREATE_RECIPE_SCREEN)
+        if (selectedHomeScreen != CREATE_RECIPE_SCREEN) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppColor.BUTTON_OUTLINE),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(text = "Recipes", fontSize = 20.sp)
-            }
+                HomeScreenTab(
+                    onClick = {
+                        if(lastRecipePageScreen == RECIPE_COOKING_SCREEN && selectedHomeScreen == RECIPE_COOKING_SCREEN) {
+                            selectedHomeScreen = RECIPE_HOME_SCREEN
+                            lastRecipePageScreen = RECIPE_HOME_SCREEN
+                        } else if (lastRecipePageScreen == RECIPE_COOKING_SCREEN) {
+                            selectedHomeScreen = RECIPE_COOKING_SCREEN
+                        } else {
+                            selectedHomeScreen = RECIPE_HOME_SCREEN
+                        }
 
-            HomeScreenTab(
-                onClick = { selectedScreen = PANTRY_HOME_SCREEN },
-                modifier = Modifier.weight(1f),
-                selected = selectedScreen == PANTRY_HOME_SCREEN
-            ) {
-                Text(text = "Pantry", fontSize = 20.sp)
-            }
-
-            HomeScreenTab(
-                onClick = { selectedScreen = PROFILE_HOME_SCREEN },
-                selected = (selectedScreen == PROFILE_HOME_SCREEN || selectedScreen == EDIT_PROFILE_SCREEN)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .clip(shape = CircleShape)
-                        .width(40.dp)
-                        .height(40.dp),
-                    contentAlignment = Alignment.Center
+                    },
+                    modifier = Modifier.weight(1f),
+                    selected = (selectedHomeScreen == RECIPE_HOME_SCREEN || selectedHomeScreen == RECIPE_COOKING_SCREEN || selectedHomeScreen == CREATE_RECIPE_SCREEN)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.blank_profile_image),
-                        contentDescription = ""
-                    )
+                    Text(text = "Recipes", fontSize = 20.sp)
+                }
+
+                HomeScreenTab(
+                    onClick = { selectedHomeScreen = PANTRY_HOME_SCREEN },
+                    modifier = Modifier.weight(1f),
+                    selected = selectedHomeScreen == PANTRY_HOME_SCREEN
+                ) {
+                    Text(text = "Pantry", fontSize = 20.sp)
+                }
+
+                HomeScreenTab(
+                    onClick = { selectedHomeScreen = PROFILE_HOME_SCREEN },
+                    selected = (selectedHomeScreen == PROFILE_HOME_SCREEN || selectedHomeScreen == EDIT_PROFILE_SCREEN)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(shape = CircleShape)
+                            .width(40.dp)
+                            .height(40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.blank_profile_image),
+                            contentDescription = ""
+                        )
+                    }
                 }
             }
         }
 
-        when (selectedScreen) {
-            RECIPE_HOME_SCREEN -> RecipeHomeScreen()
+        when (selectedHomeScreen) {
+            RECIPE_HOME_SCREEN -> {
+                when (lastRecipePageScreen) {
+                    RECIPE_HOME_SCREEN -> {
+                        lastRecipePageScreen = RECIPE_HOME_SCREEN
+                        RecipeHomeScreen(recipes)
+                    }
+                    RECIPE_COOKING_SCREEN -> {
+                        if (selectedRecipeIndex < 0) {
+                            selectedHomeScreen = RECIPE_HOME_SCREEN
+                            RecipeHomeScreen(recipes)
+                        } else {
+                            lastRecipePageScreen = RECIPE_COOKING_SCREEN
+                            RecipeCookingScreen(recipe = recipes.value[selectedRecipeIndex])
+                        }
+                    }
+
+                }
+            }
             PANTRY_HOME_SCREEN -> PantryHomeScreen()
             PROFILE_HOME_SCREEN, EDIT_PROFILE_SCREEN -> ProfileHomeScreen()
             RECIPE_COOKING_SCREEN -> {
-                if(selectedRecipeIndex < 0) {
-                    selectedScreen = RECIPE_HOME_SCREEN
-                    RecipeHomeScreen()
+                if (selectedRecipeIndex < 0) {
+                    selectedHomeScreen = RECIPE_HOME_SCREEN
+                    RecipeHomeScreen(recipes)
                 } else {
-                    RecipeCookingScreen(recipe = TempDataObject.recipes[selectedRecipeIndex])
+                    lastRecipePageScreen = RECIPE_COOKING_SCREEN
+                    RecipeCookingScreen(recipe = recipes.value[selectedRecipeIndex])
                 }
+            }
+            CREATE_RECIPE_SCREEN -> CreateRecipeScreen() { recipe ->
+                recipes.value = listOf(recipe) + recipes.value
             }
         }
     }
@@ -125,7 +167,7 @@ fun HomeScreenTab(
         },
         content = content,
         colors = ButtonDefaults.buttonColors(
-            if(selected) {
+            if (selected) {
                 AppColor.BACKGROUND_PRIMARY
             } else {
                 AppColor.BACKGROUND_SECONDARY
