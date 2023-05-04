@@ -1,5 +1,6 @@
 package com.recipebuddy
 
+import android.content.Intent
 import android.database.CursorWindow
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -14,6 +15,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.recipebuddy.components.HomeScreen
+import com.recipebuddy.javacomponents.LoginActivity
+import com.recipebuddy.javacomponents.SaveSharedPreference
 import com.recipebuddy.util.DatabaseManager
 import java.io.ByteArrayOutputStream
 
@@ -41,9 +44,14 @@ class MainActivity : ComponentActivity() {
 
         DatabaseManager.populate(this)
 
-        setContent {
-            Box() {
-                HomeScreen()
+        if (SaveSharedPreference.getUserName(this@MainActivity)?.length ?: null == 0) {
+            val i = Intent(this@MainActivity, LoginActivity::class.java)
+            startActivity(i)
+        } else {
+            setContent {
+                Box() {
+                    HomeScreen()
+                }
             }
         }
 

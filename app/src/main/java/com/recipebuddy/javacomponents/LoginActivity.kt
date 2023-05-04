@@ -8,8 +8,8 @@ import android.content.Intent
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
-import com.recipebuddy.components.AppDatabase
-import com.recipebuddy.KotlinMainActivity
+import com.recipebuddy.MainActivity
+import com.recipebuddy.database.*
 
 class LoginActivity : Activity() {
     // variable initialization
@@ -53,7 +53,7 @@ class LoginActivity : Activity() {
 
                     // If what's entered matches what has been saved, redirect
                     if (spacedpass == passReturn) {
-                        val e = Intent(this@LoginActivity, KotlinMainActivity::class.java)
+                        val e = Intent(this@LoginActivity, MainActivity::class.java)
                         startActivity(e)
                     } else { // if input mismatch, display message
                         found = false
@@ -67,7 +67,7 @@ class LoginActivity : Activity() {
                 var passReturn = dao.getPassword(username)
                 // If input matches, redirect
                 if (password == passReturn) {
-                    val e = Intent(this@LoginActivity, KotlinMainActivity::class.java)
+                    val e = Intent(this@LoginActivity, MainActivity::class.java)
                     startActivity(e)
                 } else { // if input mismatch, display message
                     found = false

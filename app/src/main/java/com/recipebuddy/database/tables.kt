@@ -1,5 +1,6 @@
 package com.recipebuddy.database
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.room.*
 import com.recipebuddy.util.Recipe
@@ -74,7 +75,7 @@ interface Insertion {
     @Insert
     fun insertRecipeTags(recipeTags: Recipe_Tags): Long
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertUser(user: Users): Long
 
     @Insert
@@ -94,6 +95,19 @@ interface Insertion {
 abstract class AppDatabase : RoomDatabase() {
     abstract fun insertion(): Insertion
     abstract fun readData(): ReadData
+
+    companion object {
+        private var instance: AppDatabase? = null
+        fun getInstance(context: Context): AppDatabase {
+            if (instance == null) {
+                instance = Room.databaseBuilder(
+                    context,
+                    AppDatabase::class.java, "recipe_database"
+                ).build()
+            }
+            return instance as AppDatabase
+        }
+    }
 }
 
 @Dao

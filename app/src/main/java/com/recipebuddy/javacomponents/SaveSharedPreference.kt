@@ -26,10 +26,6 @@ object SaveSharedPreference {
         return getSharedPreferences(ctx).getString(DEF_USER_NAME, "")
     }
 
-    fun getPassword(ctx: Context): String? {
-        return getSharedPreferences(ctx).getString(DEF_PASSWORD, "")
-    }
-
     fun clearUser(ctx: Context) {
         val edit = getSharedPreferences(ctx).edit()
         edit.clear()

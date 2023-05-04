@@ -4,20 +4,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/baseline_menu_book_24"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/baseline_menu_book_24"
         android:supportsRtl="true"
         android:theme="@style/Theme.RecipeBuddy">
-        <activity
-            android:name="com.recipebuddy.javacomponents.MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
         <activity
             android:name="com.recipebuddy.javacomponents.LoginActivity"
             android:label="@string/app_name"

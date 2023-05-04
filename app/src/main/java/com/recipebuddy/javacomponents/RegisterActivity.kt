@@ -2,23 +2,13 @@ package com.recipebuddy.javacomponents
 
 import android.app.Activity
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.compose.runtime.rememberCoroutineScope
 import com.recipebuddy.R
-import com.recipebuddy.components.AppDatabase
-import com.recipebuddy.components.Insertion
-import com.recipebuddy.components.Users
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import java.lang.Boolean.TRUE
-import kotlin.concurrent.thread
-
+import com.recipebuddy.database.*
 
 
 class RegisterActivity : Activity() {

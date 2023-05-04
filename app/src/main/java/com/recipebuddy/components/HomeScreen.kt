@@ -22,6 +22,7 @@ import com.recipebuddy.R
 import com.recipebuddy.components.ScreenManager.CREATE_RECIPE_SCREEN
 import com.recipebuddy.components.ScreenManager.EDIT_PROFILE_SCREEN
 import com.recipebuddy.components.ScreenManager.EDIT_RECIPE_SCREEN
+import com.recipebuddy.components.ScreenManager.LOG_OUT
 import com.recipebuddy.components.ScreenManager.PANTRY_HOME_SCREEN
 import com.recipebuddy.components.ScreenManager.PROFILE_HOME_SCREEN
 import com.recipebuddy.components.ScreenManager.RECIPE_COOKING_SCREEN
@@ -47,6 +48,7 @@ object ScreenManager {
     const val CREATE_RECIPE_SCREEN = 4
     const val EDIT_PROFILE_SCREEN = 5
     const val EDIT_RECIPE_SCREEN = 6
+    const val LOG_OUT = 7
 
     var editedRecipe by mutableStateOf<Recipe?>(null)
 
@@ -54,6 +56,10 @@ object ScreenManager {
         editedRecipe = recipe
         selectedHomeScreen = EDIT_RECIPE_SCREEN
     }
+}
+
+fun SetSelectedScreen() {
+    selectedHomeScreen = 0
 }
 
 @RequiresApi(Build.VERSION_CODES.N)
@@ -205,6 +211,8 @@ fun HomeScreen() {
                     editedRecipe = null
                     selectedHomeScreen = RECIPE_HOME_SCREEN
                 }
+                LOG_OUT -> Logout()
+
             }
         }
     }
