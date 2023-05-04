@@ -103,7 +103,7 @@ abstract class AppDatabase : RoomDatabase() {
                 instance = Room.databaseBuilder(
                     context,
                     AppDatabase::class.java, "recipe_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
             }
             return instance as AppDatabase
         }

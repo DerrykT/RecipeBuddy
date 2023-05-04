@@ -110,7 +110,7 @@ fun ProfileHomeScreen() {
                     }
                 } else {
                     Button(
-                        onClick = {},
+                        onClick = { ScreenManager.selectedHomeScreen = ScreenManager.LOG_OUT },
                         colors = ButtonDefaults.buttonColors(Color.Red),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.padding(5.dp)

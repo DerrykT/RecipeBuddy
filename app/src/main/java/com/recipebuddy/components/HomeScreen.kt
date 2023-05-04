@@ -58,10 +58,6 @@ object ScreenManager {
     }
 }
 
-fun SetSelectedScreen() {
-    selectedHomeScreen = 0
-}
-
 @RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun HomeScreen() {

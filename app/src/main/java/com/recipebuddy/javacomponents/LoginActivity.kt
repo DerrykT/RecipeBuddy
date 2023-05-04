@@ -53,6 +53,10 @@ class LoginActivity : Activity() {
 
                     // If what's entered matches what has been saved, redirect
                     if (spacedpass == passReturn) {
+                        if (SaveSharedPreference.getUserName(this@LoginActivity)?.length ?: null == 0) {
+                            SaveSharedPreference.setUserName(this, spacedname);
+                            SaveSharedPreference.setPassword(this, spacedpass);
+                        }
                         val e = Intent(this@LoginActivity, MainActivity::class.java)
                         startActivity(e)
                     } else { // if input mismatch, display message
@@ -67,6 +71,10 @@ class LoginActivity : Activity() {
                 var passReturn = dao.getPassword(username)
                 // If input matches, redirect
                 if (password == passReturn) {
+                    if (SaveSharedPreference.getUserName(this@LoginActivity)?.length ?: null == 0) {
+                        SaveSharedPreference.setUserName(this, username);
+                        SaveSharedPreference.setPassword(this, password);
+                    }
                     val e = Intent(this@LoginActivity, MainActivity::class.java)
                     startActivity(e)
                 } else { // if input mismatch, display message

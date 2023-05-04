@@ -28,7 +28,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.recipebuddy.KotlinMainActivity"
+            android:name="com.recipebuddy.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.RecipeBuddy">
