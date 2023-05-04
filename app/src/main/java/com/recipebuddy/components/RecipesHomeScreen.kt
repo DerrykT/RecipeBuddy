@@ -1,5 +1,6 @@
 package com.recipebuddy.components
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -236,6 +237,7 @@ fun RecipeScrollable(displayedRecipes: MutableState<List<Recipe>>) {
         verticalArrangement = Arrangement.spacedBy(25.dp)
     ) {
         displayedRecipes.value.forEachIndexed { index, recipe ->
+            Log.d("Debugging", recipe.name)
             item {
                 RecipeScrollableItem(recipe = recipe, index = index)
             }
