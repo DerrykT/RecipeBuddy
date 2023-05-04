@@ -264,20 +264,52 @@ object DatabaseManager {
     }
 }
 
+fun formatRecipe(unformattedRecipe: Recipe_Info): Recipe {
+    val ingredients = db?.readData()?.getRecipeIngredients(unformattedRecipe.RecipeName) ?: listOf()
+    val tags = db?.readData()?.getTagsByRecipeName(unformattedRecipe.RecipeName) ?: listOf()
+    val instructions = unformattedRecipe.RecipeInstructions.split('*')
+    val timers = unformattedRecipe.RecipeTimers.split('*')
+    val formattedInstructions = mutableListOf<Instruction>()
+    var totalTime = 0
+    val tools = unformattedRecipe.Tools.split('*')
+
+    instructions.forEachIndexed { index, text ->
+        totalTime += timers[index].toIntOrNull() ?: 0
+        formattedInstructions.add(
+            Instruction(
+                text,
+                if (timers[index].toInt() == 0) null else timers[index].toInt()
+            )
+        )
+    }
+
+    return Recipe(
+        unformattedRecipe.RecipeName,
+        unformattedRecipe.RecipeRating,
+        unformattedRecipe.Time,
+        tags,
+        ingredients,
+        tools,
+        formattedInstructions,
+        BitmapFactory.decodeByteArray(unformattedRecipe.Picture, 0, unformattedRecipe.Picture.size)
+    )
+
+}
 
 fun fetchFormattedRecipes(recipes: MutableState<List<Recipe>>) {
     GlobalScope.launch(Dispatchers.IO) {
-        val unformattedRecipe = db?.readData()?.getRecipes() ?: return@launch
+        val unformattedRecipes = db?.readData()?.getRecipes() ?: return@launch
         val formattedRecipes = mutableListOf<Recipe>()
 
-        unformattedRecipe.forEach {
-            val ingredients = db?.readData()?.getRecipeIngredients(it.RecipeName) ?: listOf()
-            val tags = db?.readData()?.getTagsByRecipeName(it.RecipeName) ?: listOf()
-            val instructions = it.RecipeInstructions.split('*')
-            val timers = it.RecipeTimers.split('*')
+        unformattedRecipes.forEach { unformattedRecipe ->
+            val ingredients =
+                db?.readData()?.getRecipeIngredients(unformattedRecipe.RecipeName) ?: listOf()
+            val tags = db?.readData()?.getTagsByRecipeName(unformattedRecipe.RecipeName) ?: listOf()
+            val instructions = unformattedRecipe.RecipeInstructions.split('*')
+            val timers = unformattedRecipe.RecipeTimers.split('*')
             val formattedInstructions = mutableListOf<Instruction>()
             var totalTime = 0
-            val tools = it.Tools.split('*')
+            val tools = unformattedRecipe.Tools.split('*')
 
             instructions.forEachIndexed { index, text ->
                 totalTime += timers[index].toIntOrNull() ?: 0
@@ -291,14 +323,18 @@ fun fetchFormattedRecipes(recipes: MutableState<List<Recipe>>) {
 
             formattedRecipes.add(
                 Recipe(
-                    it.RecipeName,
-                    it.RecipeRating,
-                    it.Time,
+                    unformattedRecipe.RecipeName,
+                    unformattedRecipe.RecipeRating,
+                    unformattedRecipe.Time,
                     tags,
                     ingredients,
                     tools,
                     formattedInstructions,
-                    BitmapFactory.decodeByteArray(it.Picture, 0, it.Picture.size)
+                    BitmapFactory.decodeByteArray(
+                        unformattedRecipe.Picture,
+                        0,
+                        unformattedRecipe.Picture.size
+                    )
                 )
             )
         }
