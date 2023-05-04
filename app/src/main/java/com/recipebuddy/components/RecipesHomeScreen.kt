@@ -32,6 +32,7 @@ import com.recipebuddy.R
 import com.recipebuddy.database.Tag_List
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.*
+import java.util.*
 
 @Composable
 fun RecipeHomeScreen(
@@ -92,12 +93,11 @@ fun RecipeHomeScreen(
         if (isCreatingTag) {
             AddTagAlertDialog(
                 onConfirm = { tag ->
-                    persistTag(Tag_List(tag), searchTagsState)
+                    persistTag(Tag_List(tag.lowercase(Locale.getDefault())), searchTagsState)
                     isCreatingTag = !isCreatingTag
                 },
                 onCancel = { isCreatingTag = !isCreatingTag })
         }
-
     }
 }
 
@@ -344,7 +344,7 @@ fun RatingBar(rating: Int, modifier: Modifier = Modifier, bubbleSize: Dp = 12.dp
         horizontalArrangement = Arrangement.spacedBy(1.dp),
         modifier = modifier
     ) {
-        for (i in 0..5) {
+        for (i in 1..5) {
             Box(
                 modifier = Modifier
                     .clip(shape = CircleShape)
@@ -422,8 +422,7 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Box(
-            contentAlignment = Alignment.CenterStart,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
@@ -433,9 +432,23 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
                 onClick = {
                     ScreenManager.selectedHomeScreen =
                         ScreenManager.RECIPE_COOKING_SCREEN
-                }
+                },
+                modifier = Modifier.padding(start = 10.dp)
             ) {
                 Text(text = "Cook", fontSize = 20.sp, color = Color.Black)
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                colors = ButtonDefaults.buttonColors(AppColor.BACKGROUND_SECONDARY),
+                shape = RoundedCornerShape(5.dp),
+                onClick = {
+                    ScreenManager.openEditRecipeScreen(recipe)
+                },
+                modifier = Modifier.padding(end = 10.dp)
+            ) {
+                Text(text = "Edit", fontSize = 20.sp, color = Color.Black)
             }
         }
 
@@ -444,7 +457,7 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
 }
 
 @Composable
-private fun AddTagAlertDialog(
+fun AddTagAlertDialog(
     onConfirm: (text: String) -> Unit,
     onCancel: () -> Unit
 ) {

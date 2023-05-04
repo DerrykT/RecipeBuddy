@@ -4,9 +4,11 @@ import android.content.Context
 import android.database.sqlite.SQLiteConstraintException
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.room.Room
 import com.recipebuddy.R
+import com.recipebuddy.components.ScreenManager
 import com.recipebuddy.database.*
 import com.recipebuddy.util.DatabaseManager.db
 import kotlinx.coroutines.*
@@ -65,7 +67,7 @@ object DatabaseManager {
 
             val recipes = mutableListOf<Recipe_Info>()
 
-            for (i in 1..10) {
+            for (i in 1..2) {
                 recipes.add(
                     Recipe_Info(
                         "Chocolate Chip Cookies $i",
@@ -90,30 +92,34 @@ object DatabaseManager {
             }
 
             val baseIngredients = listOf(
-                Ingredient_List(IngredientName = "Butter", Quantity = 1, Unit = "cup"),
-                Ingredient_List(IngredientName = "White Sugar", Quantity = 1, Unit = "cup"),
-                Ingredient_List(IngredientName = "Brown Sugar", Quantity = 1, Unit = "cup"),
-                Ingredient_List(IngredientName = "Eggs", Quantity = 2, Unit = ""),
+                Ingredient_List(IngredientName = "Butter", Quantity = 1.0, Unit = "cup"),
+                Ingredient_List(IngredientName = "White Sugar", Quantity = 1.0, Unit = "cup"),
+                Ingredient_List(IngredientName = "Brown Sugar", Quantity = 1.0, Unit = "cup"),
+                Ingredient_List(IngredientName = "Eggs", Quantity = 2.0, Unit = ""),
                 Ingredient_List(
                     IngredientName = "Vanilla Extract",
-                    Quantity = 2,
+                    Quantity = 2.0,
                     Unit = "teaspoons"
                 ),
-                Ingredient_List(IngredientName = "Baking Soda", Quantity = 1, Unit = "teaspoon"),
-                Ingredient_List(IngredientName = "Hot Water", Quantity = 2, Unit = "teaspoons"),
-                Ingredient_List(IngredientName = "Salt", Quantity = 1, Unit = "teaspoon"),
-                Ingredient_List(IngredientName = "All-Purpose Flour", Quantity = 3, Unit = "cups"),
+                Ingredient_List(IngredientName = "Baking Soda", Quantity = 1.0, Unit = "teaspoon"),
+                Ingredient_List(IngredientName = "Hot Water", Quantity = 2.0, Unit = "teaspoons"),
+                Ingredient_List(IngredientName = "Salt", Quantity = 1.0, Unit = "teaspoon"),
                 Ingredient_List(
-                    IngredientName = "Semisweet Chocolate Chips",
-                    Quantity = 2,
+                    IngredientName = "All-Purpose Flour",
+                    Quantity = 3.0,
                     Unit = "cups"
                 ),
-                Ingredient_List(IngredientName = "Chopped Walnuts", Quantity = 1, Unit = "cup")
+                Ingredient_List(
+                    IngredientName = "Semisweet Chocolate Chips",
+                    Quantity = 2.0,
+                    Unit = "cups"
+                ),
+                Ingredient_List(IngredientName = "Chopped Walnuts", Quantity = 1.0, Unit = "cup")
             )
 
             val baseTags = listOf(
-                Tag_List("Dessert"),
-                Tag_List("Dairy")
+                Tag_List("dessert"),
+                Tag_List("dairy")
             )
 
             try {
@@ -151,67 +157,67 @@ object DatabaseManager {
                     Ingredient_Use(
                         IngredientName = "Butter",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 1,
+                        Quantity = 1.0,
                         Unit = "cup"
                     ),
                     Ingredient_Use(
                         IngredientName = "White Sugar",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 1,
+                        Quantity = 1.0,
                         Unit = "cup"
                     ),
                     Ingredient_Use(
                         IngredientName = "Brown Sugar",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 1,
+                        Quantity = 1.0,
                         Unit = "cup"
                     ),
                     Ingredient_Use(
                         IngredientName = "Eggs",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 2,
+                        Quantity = 2.0,
                         Unit = ""
                     ),
                     Ingredient_Use(
                         IngredientName = "Vanilla Extract",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 2,
+                        Quantity = 2.0,
                         Unit = "teaspoons"
                     ),
                     Ingredient_Use(
                         IngredientName = "Baking Soda",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 1,
+                        Quantity = 1.0,
                         Unit = "teaspoon"
                     ),
                     Ingredient_Use(
                         IngredientName = "Hot Water",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 2,
+                        Quantity = 2.0,
                         Unit = "teaspoons"
                     ),
                     Ingredient_Use(
                         IngredientName = "Salt",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 1,
+                        Quantity = 1.0,
                         Unit = "teaspoon"
                     ),
                     Ingredient_Use(
                         IngredientName = "All-Purpose Flour",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 3,
+                        Quantity = 3.0,
                         Unit = "cups"
                     ),
                     Ingredient_Use(
                         IngredientName = "Semisweet Chocolate Chips",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 2,
+                        Quantity = 2.0,
                         Unit = "cups"
                     ),
                     Ingredient_Use(
                         IngredientName = "Chopped Walnuts",
                         RecipeName = recipe.RecipeName,
-                        Quantity = 1,
+                        Quantity = 1.0,
                         Unit = "cup"
                     )
                 )
@@ -225,8 +231,8 @@ object DatabaseManager {
                 }
 
                 val recipeTags = listOf(
-                    Recipe_Tags(recipe.RecipeName, "Dessert"),
-                    Recipe_Tags(recipe.RecipeName, "Dairy")
+                    Recipe_Tags(recipe.RecipeName, "dessert"),
+                    Recipe_Tags(recipe.RecipeName, "dairy")
                 )
 
                 recipeTags.forEach { tag ->
@@ -276,7 +282,9 @@ fun formatRecipes(unformattedRecipes: List<Recipe_Info>): List<Recipe> {
 fun formatRecipe(unformattedRecipe: Recipe_Info): Recipe {
     val ingredients = db?.readData()?.getRecipeIngredients(unformattedRecipe.RecipeName) ?: listOf()
     val tags = db?.readData()?.getTagsByRecipeName(unformattedRecipe.RecipeName) ?: listOf()
+    if(unformattedRecipe.RecipeInstructions.last() == '*') unformattedRecipe.RecipeInstructions = unformattedRecipe.RecipeInstructions.dropLast(1)
     val instructions = unformattedRecipe.RecipeInstructions.split('*')
+    if(unformattedRecipe.RecipeTimers.last() == '*') unformattedRecipe.RecipeTimers = unformattedRecipe.RecipeTimers.dropLast(1)
     val timers = unformattedRecipe.RecipeTimers.split('*')
     val formattedInstructions = mutableListOf<Instruction>()
     var totalTime = 0
@@ -302,63 +310,119 @@ fun formatRecipe(unformattedRecipe: Recipe_Info): Recipe {
         formattedInstructions,
         BitmapFactory.decodeByteArray(unformattedRecipe.Picture, 0, unformattedRecipe.Picture.size)
     )
-
 }
 
-fun fetchFormattedRecipes(displayedRecipes: MutableState<List<Recipe>>, originalRecipes: MutableState<List<Recipe>>) {
-    GlobalScope.launch(Dispatchers.IO) {
-        val unformattedRecipes = db?.readData()?.getRecipes() ?: return@launch
-        val formattedRecipes = formatRecipes(unformattedRecipes)
+fun reverseFormatRecipe(recipe: Recipe): Recipe_Info {
+    var timers = ""
+    var instructions = ""
+    recipe.instructions.forEach {
+        timers += "${it.time ?: 0}*"
+        instructions += "${it.text}*"
+    }
+    timers = timers.dropLast(1)
+    instructions.dropLast(1)
 
-        withContext(Dispatchers.Main) {
-            displayedRecipes.value = formattedRecipes
-            originalRecipes.value = formattedRecipes
+    var tools = ""
+    recipe.tools.forEach {
+        tools += "$it*"
+    }
+    tools.dropLast(1)
+
+    val stream = ByteArrayOutputStream()
+    recipe.imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+
+    return Recipe_Info(
+        recipe.name,
+        timers,
+        instructions,
+        recipe.rating,
+        getUsername(),
+        recipe.time,
+        stream.toByteArray(),
+        tools
+    )
+}
+
+fun fetchFormattedRecipes(
+    displayedRecipes: MutableState<List<Recipe>>,
+    originalRecipes: MutableState<List<Recipe>>
+) {
+    try {
+        GlobalScope.launch(Dispatchers.IO) {
+            val unformattedRecipes = db?.readData()?.getRecipes() ?: return@launch
+            val formattedRecipes = formatRecipes(unformattedRecipes)
+
+            withContext(Dispatchers.Main) {
+                displayedRecipes.value = formattedRecipes
+                originalRecipes.value = formattedRecipes
+            }
         }
+    } catch (exception: java.lang.Exception) {
+        Log.d("Debugging", "ISSUE")
     }
 }
 
 fun fetchSearchTags(tagsState: MutableState<List<RecipeTag>>) {
-    GlobalScope.launch(Dispatchers.IO) {
-        val fetchedTags = db?.readData()?.getTags() ?: listOf()
+    try {
+        GlobalScope.launch(Dispatchers.IO) {
+            val fetchedTags = db?.readData()?.getTags() ?: listOf()
 
-        withContext(Dispatchers.Main) {
-            tagsState.value = fetchedTags.map {
-                RecipeTag(it.Tag, false)
+            withContext(Dispatchers.Main) {
+                tagsState.value = fetchedTags.map {
+                    RecipeTag(it.Tag, false)
+                }
             }
         }
+    } catch (exception: java.lang.Exception) {
+        Log.d("Debugging", "ISSUE")
     }
 }
 
 fun fetchIngredients(ingredientsState: MutableState<List<Ingredient_List>>) {
-    GlobalScope.launch(Dispatchers.IO) {
-        val fetchedIngredients = db?.readData()?.getIngredients() ?: listOf()
+    try {
+        GlobalScope.launch(Dispatchers.IO) {
+            val fetchedIngredients = db?.readData()?.getIngredients() ?: listOf()
 
-        withContext(Dispatchers.Main) {
-            ingredientsState.value = fetchedIngredients
+            withContext(Dispatchers.Main) {
+                ingredientsState.value = fetchedIngredients
+            }
         }
+    } catch (exception: java.lang.Exception) {
+        Log.d("Debugging", "ISSUE")
+
     }
+
 }
 
 fun fetchTools(toolsState: MutableState<List<String>>) {
-    GlobalScope.launch(Dispatchers.IO) {
-        val fetchedTools = db?.readData()?.getTools() ?: listOf()
+    try {
+        GlobalScope.launch(Dispatchers.IO) {
+            val fetchedTools = db?.readData()?.getTools() ?: listOf()
 
-        withContext(Dispatchers.Main) {
-            toolsState.value = fetchedTools
+            withContext(Dispatchers.Main) {
+                toolsState.value = fetchedTools
+            }
         }
+    } catch (exception: java.lang.Exception) {
+        Log.d("Debugging", "ISSUE")
     }
 }
 
 fun getUsername(): String = "Derryk Taylor"
 
 fun persistTool(newTool: String, toolsState: MutableState<List<String>>) {
-    GlobalScope.launch(Dispatchers.IO) {
-        db?.insertion()?.insertTool(Tool_List(newTool))
+    try {
+        GlobalScope.launch(Dispatchers.IO) {
+            db?.insertion()?.insertTool(Tool_List(newTool))
 
-        withContext(Dispatchers.Main) {
-            toolsState.value = listOf(newTool) + toolsState.value
+            withContext(Dispatchers.Main) {
+                toolsState.value = listOf(newTool) + toolsState.value
+            }
         }
+    } catch (exception: java.lang.Exception) {
+        Log.d("Debugging", "ISSUE")
     }
+
 }
 
 fun persistIngredient(
@@ -366,20 +430,86 @@ fun persistIngredient(
     ingredientsState: MutableState<List<Ingredient_List>>
 ) {
     GlobalScope.launch(Dispatchers.IO) {
-        db?.insertion()?.insertIngredientList(newIngredient)
+        try {
+            db?.insertion()?.insertIngredientList(newIngredient)
 
-        withContext(Dispatchers.Main) {
-            ingredientsState.value = listOf(newIngredient) + ingredientsState.value
+            withContext(Dispatchers.Main) {
+                ingredientsState.value = listOf(newIngredient) + ingredientsState.value
+            }
+        } catch (exception: java.lang.Exception) {
+            Log.d("Debugging", "ISSUE")
         }
     }
 }
 
 fun persistTag(newTag: Tag_List, tagsState: MutableState<List<RecipeTag>>) {
     GlobalScope.launch(Dispatchers.IO) {
-        db?.insertion()?.insertTagList(newTag)
+        try {
+            db?.insertion()?.insertTagList(newTag)
 
-        withContext(Dispatchers.Main) {
-            tagsState.value = listOf(RecipeTag(newTag.Tag, false)) + tagsState.value
+            withContext(Dispatchers.Main) {
+                tagsState.value = listOf(RecipeTag(newTag.Tag, false)) + tagsState.value
+            }
+        } catch (exception: java.lang.Exception) {
+            Log.d("Debugging", "ISSUE")
+        }
+    }
+}
+
+fun persistEditedRecipe(newRecipe: Recipe, originalRecipe: Recipe, displayedRecipesState: MutableState<List<Recipe>>, originalRecipesState: MutableState<List<Recipe>>) {
+    GlobalScope.launch(Dispatchers.IO) {
+        displayedRecipesState.value = displayedRecipesState.value.filter { it.name != originalRecipe.name }
+        originalRecipesState.value = originalRecipesState.value.filter { it.name != originalRecipe.name }
+
+        try {
+            db?.insertion()?.deleteRecipe(reverseFormatRecipe(originalRecipe))
+        } catch (exception: Exception) {
+            Log.d("Debugging", "ISSUE")
+        }
+
+        try {
+            db?.insertion()?.insertRecipeInfo(
+                reverseFormatRecipe(newRecipe)
+            )
+        } catch (exception: Exception) {
+            Log.d("Debugging", "ISSUE")
+        }
+
+        newRecipe.ingredients.forEach {
+            try {
+                db?.insertion()?.insertIngredientUse(
+                    Ingredient_Use(
+                        it.IngredientName,
+                        newRecipe.name,
+                        it.Quantity,
+                        it.Unit
+                    )
+                )
+            } catch (exception: Exception) {
+                Log.d("Debugging", "ISSUE")
+            }
+        }
+    }
+}
+
+fun persistRecipe(recipe: Recipe) {
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+            recipe.ingredients.forEach {
+                db?.insertion()?.insertIngredientUse(
+                    Ingredient_Use(
+                        it.IngredientName,
+                        recipe.name,
+                        it.Quantity,
+                        it.Unit
+                    )
+                )
+            }
+            db?.insertion()?.insertRecipeInfo(
+                reverseFormatRecipe(recipe)
+            )
+        } catch (exception: java.lang.Exception) {
+            Log.d("Debugging", "ISSUE")
         }
     }
 }
@@ -394,6 +524,8 @@ data class Recipe(
     val instructions: List<Instruction>,
     val imageBitmap: Bitmap
 )
+
+fun Recipe.clone() = Recipe(this.name, this.rating, this.time, this.tags, this.ingredients, this.tools, this.instructions, this.imageBitmap)
 
 data class Instruction(val text: String, val time: Int?)
 

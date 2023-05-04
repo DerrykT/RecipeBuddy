@@ -29,16 +29,10 @@ import androidx.compose.ui.window.Dialog
 import com.recipebuddy.database.Ingredient_List
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @Composable
-fun PantryHomeScreen() {
-    val ingredients = remember { mutableStateOf(listOf<Ingredient_List>()) }
-    val tools = remember { mutableStateOf(listOf<String>()) }
+fun PantryHomeScreen(ingredientsState: MutableState<List<Ingredient_List>>, toolsState: MutableState<List<String>>) {
     var showAddDialog by remember { mutableStateOf(false) }
-
-    fetchTools(tools)
-    fetchIngredients(ingredients)
 
     Box() {
         Column(
@@ -55,7 +49,7 @@ fun PantryHomeScreen() {
                     .clip(shape = RoundedCornerShape(8.dp))
                     .background(AppColor.BACKGROUND_SECONDARY)
                     .padding(top = 10.dp, bottom = 10.dp, start = 20.dp, end = 20.dp),
-                ingredients
+                ingredientsState
             )
 
             ToolsBox(
@@ -65,7 +59,7 @@ fun PantryHomeScreen() {
                     .clip(shape = RoundedCornerShape(8.dp))
                     .background(AppColor.BACKGROUND_SECONDARY)
                     .padding(top = 10.dp, bottom = 10.dp, start = 20.dp, end = 20.dp),
-                tools
+                toolsState
             )
 
             AddBox() {
@@ -77,9 +71,9 @@ fun PantryHomeScreen() {
             IngredientToolAlertDialog(
                 onConfirm = { text, type ->
                     if (type == "Tool") {
-                        persistTool(text, tools)
+                        persistTool(text, toolsState)
                     } else {
-                        persistIngredient(Ingredient_List(text, 0, ""), ingredients)
+                        persistIngredient(Ingredient_List(text, 0.0, ""), ingredientsState)
                     }
                     showAddDialog = !showAddDialog
                 }

@@ -1,5 +1,6 @@
 package com.recipebuddy.components
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,26 +14,50 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recipebuddy.R
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.Instruction
 import com.recipebuddy.util.Recipe
+import com.recipebuddy.util.Timer.isPaused
+import com.recipebuddy.util.Timer.pauseTimer
+import com.recipebuddy.util.Timer.recipeName
+import com.recipebuddy.util.Timer.resumeTimer
+import com.recipebuddy.util.Timer.startTimer
+import com.recipebuddy.util.Timer.timeLeft
+import com.recipebuddy.util.Timer.totalTime
 import com.recipebuddy.util.minuteToString
+import com.recipebuddy.util.secondsToString
 
 @Composable
 fun RecipeCookingScreen(recipe: Recipe) {
+    val refreshState = remember { mutableStateOf(0) }
+
     Column(
         modifier = Modifier
             .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 10.dp),
         verticalArrangement = Arrangement.spacedBy(13.dp)
     ) {
+        if (refreshState.value < 10 && recipeName.value == recipe.name) {
+            Progressbar(
+                percent = timeLeft.value.toFloat() / totalTime.toFloat(),
+                text = com.recipebuddy.util.Timer.timeStringState.value
+            )
+        }
+
         // Images
         Box(
             modifier = Modifier
@@ -153,7 +178,8 @@ fun RecipeCookingScreen(recipe: Recipe) {
                     InstructionItem(
                         instruction = instruction,
                         number = index,
-                        recipeName = recipe.name
+                        recipeName = recipe.name,
+                        refreshState = refreshState
                     )
                 }
             }
@@ -166,7 +192,12 @@ fun RecipeCookingScreen(recipe: Recipe) {
 }
 
 @Composable
-private fun InstructionItem(recipeName: String, instruction: Instruction, number: Int) {
+private fun InstructionItem(
+    recipeName: String,
+    instruction: Instruction,
+    number: Int,
+    refreshState: MutableState<Int>
+) {
     Row() {
         Text(
             text = "$number. ${instruction.text}",
@@ -175,13 +206,41 @@ private fun InstructionItem(recipeName: String, instruction: Instruction, number
         )
 
         if (instruction.time != null) {
-            Timer(instruction.time, recipeName, number)
+            Timer(instruction.time, recipeName, number, refreshState)
         }
     }
 }
 
 @Composable
-private fun Timer(startTime: Int, recipeName: String, instructionNumber: Int) {
+private fun Timer(
+    startTime: Int,
+    name: String,
+    instructionNumber: Int,
+    refreshState: MutableState<Int>
+) {
+    var textName by remember {
+        mutableStateOf(
+            when (name) {
+                recipeName.value -> if (isPaused) "Resume" else "Pause"
+                else -> "Start"
+            }
+        )
+    }
+
+    val currentTimeString = remember {
+        mutableStateOf(
+            when (name) {
+                recipeName.value -> secondsToString(timeLeft.value)
+                else -> minuteToString(startTime)
+            }
+        )
+    }
+
+    if (name == recipeName.value) {
+        com.recipebuddy.util.Timer.refreshState = refreshState
+        com.recipebuddy.util.Timer.timeStringState = currentTimeString
+    }
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -192,7 +251,7 @@ private fun Timer(startTime: Int, recipeName: String, instructionNumber: Int) {
             .padding(4.dp)
 
     ) {
-        Text(text = minuteToString(startTime), fontSize = 16.sp)
+        Text(text = currentTimeString.value, fontSize = 16.sp)
 
         Spacer(modifier = Modifier.height(4.dp))
 
@@ -203,13 +262,57 @@ private fun Timer(startTime: Int, recipeName: String, instructionNumber: Int) {
                 .border(1.dp, Color.Black)
                 .padding(top = 3.dp, bottom = 3.dp, start = 5.dp, end = 5.dp)
                 .clickable {
-
+                    if (textName == "Start") {
+                        textName = "Pause"
+                        startTimer(
+                            startTime * 60,
+                            name,
+                            instructionNumber,
+                            currentTimeString,
+                            refreshState
+                        )
+                    } else if (textName == "Resume") {
+                        textName = "Pause"
+                        resumeTimer()
+                    } else {
+                        textName = "Resume"
+                        pauseTimer()
+                    }
                 }
         ) {
-            Text(text = "Start", fontSize = 14.sp)
+            Text(text = textName, fontSize = 14.sp)
         }
 
         Spacer(modifier = Modifier.height(4.dp))
 
+    }
+}
+
+@Composable
+fun Progressbar(
+    percent: Float,
+    text: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(20.dp)
+            .border(2.dp, Color.Black, RoundedCornerShape(10.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .border(2.dp, Color.Black, RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.CenterStart
+        ) {
+           Box(modifier = Modifier.fillMaxWidth(if(percent < 0 || percent > 1) 1f else (1f - percent)).fillMaxHeight().clip(RoundedCornerShape(10.dp)).background(AppColor.TAG_BUTTON_GREEN))
+        }
+
+        Text(
+            text = text, fontSize = 15.sp, fontWeight = FontWeight.Light, color = Color.Black
+        )
     }
 }

@@ -7,8 +7,8 @@ import com.recipebuddy.util.Recipe
 @Entity(tableName = "Recipe_Info")
 data class Recipe_Info(
     @PrimaryKey val RecipeName: String,
-    val RecipeTimers: String,
-    val RecipeInstructions: String,
+    var RecipeTimers: String,
+    var RecipeInstructions: String,
     val RecipeRating: Int,
     val AssociatedUser: String,
     val Time: Int,
@@ -19,7 +19,7 @@ data class Recipe_Info(
 @Entity(tableName = "Ingredient_List")
 data class Ingredient_List(
     @PrimaryKey val IngredientName: String,
-    val Quantity: Int,
+    val Quantity: Double,
     val Unit: String
 )
 
@@ -32,7 +32,7 @@ data class Tool_List(
 data class Ingredient_Use(
     val IngredientName: String,
     val RecipeName: String,
-    val Quantity: Int,
+    val Quantity: Double,
     val Unit: String
 )
 
@@ -90,7 +90,7 @@ interface Insertion {
     Tag_List::class,
     Recipe_Tags::class,
     Users::class,
-], version = 3)
+], version = 7)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun insertion(): Insertion
     abstract fun readData(): ReadData
@@ -112,7 +112,7 @@ interface ReadData{
     @Query("SELECT * FROM Tag_List")
     fun getTags(): List<Tag_List>
 
-    @Query("SELECT * FROM Recipe_Info LIMIT 10")
+    @Query("SELECT * FROM Recipe_Info ri ORDER BY ri.RecipeName DESC LIMIT 10")
     fun getRecipes(): List<Recipe_Info>
 
     @Query("SELECT * FROM Ingredient_List")
@@ -153,6 +153,17 @@ interface ReadData{
 
 data class RecipeIngredientList(
     val IngredientName: String,
-    val Quantity: Int,
+    val Quantity: Double,
     val Unit: String
 )
+
+
+fun List<RecipeIngredientList>.toMutableStringToDoubleMap(): MutableMap<String, Double> {
+    val mutableMap = mutableMapOf<String, Double>()
+
+    this.forEach {
+        mutableMap[it.IngredientName] = it.Quantity
+    }
+
+    return mutableMap
+}
