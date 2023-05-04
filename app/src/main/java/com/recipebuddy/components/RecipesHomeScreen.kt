@@ -13,10 +13,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,59 +33,82 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recipebuddy.R
+import com.recipebuddy.database.Tag_List
 import com.recipebuddy.ui.resources.AppColor
-import com.recipebuddy.util.Recipe
-import com.recipebuddy.util.TempDataObject
+import com.recipebuddy.util.*
+import com.recipebuddy.util.DatabaseManager.db
 
 @Composable
-fun RecipeHomeScreen() {
+fun RecipeHomeScreen(recipes: MutableState<List<Recipe>?>) {
     Box {
         Column(
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            var isCreatingTag by remember { mutableStateOf(false) }
+
             // Initial top spacing
             Spacer(modifier = Modifier.height(10.dp))
 
             // Search Bar
-            SearchBar()
+            SearchBar(recipes)
 
             // Tags Row
-            TagsRow()
+            TagsRow() {
+                isCreatingTag = true
+            }
 
-            // Rating Bar
-            RatingSelect(rating = 1)
+            if (isCreatingTag) {
+                CreateTagRow(
+                    onCreate = { tagName ->
+                        // Add tag
+                        isCreatingTag = false
+                    },
+                    onCancel = {
+                        isCreatingTag = false
+                    }
+                )
+            }
+
+            //Rating Bar
+            RatingSelect(rating = 1, recipes = recipes)
 
             Spacer(modifier = Modifier.height(5.dp))
 
             // Recipe List
-            RecipeScrollable(recipes = TempDataObject.recipes)
+            RecipeScrollable(recipes)
         }
 
-//        Box(
-//            contentAlignment = Alignment.BottomEnd,
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(13.dp)
-//        ) {
-//            Button(
-//                colors = ButtonDefaults.buttonColors(Color.White),
-//                shape = CircleShape,
-//                modifier = Modifier
-//                    .border(3.dp, Color.Black, shape = CircleShape)
-//                    .width(50.dp)
-//                    .height(50.dp),
-//                onClick = {
-//                    ScreenManager.selectedScreen = ScreenManager.CREATE_RECIPE_SCREEN
-//                }
-//            ) {
-//                Image(painter = painterResource(id = R.drawable.create_icon), contentDescription = "", modifier = Modifier.width(40.dp).height(40.dp))
-//            }
-//        }
+        Box(
+            contentAlignment = Alignment.BottomEnd,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(13.dp)
+        ) {
+            Button(
+                colors = ButtonDefaults.buttonColors(Color.White),
+                shape = CircleShape,
+                modifier = Modifier
+                    .border(3.dp, Color.Black, shape = CircleShape)
+                    .width(50.dp)
+                    .height(50.dp),
+                onClick = {
+                    ScreenManager.selectedHomeScreen = ScreenManager.CREATE_RECIPE_SCREEN
+                }
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.create_icon),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(40.dp)
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun SearchBar() {
+fun SearchBar(recipes: MutableState<List<Recipe>?>) {
     var searchText by remember { mutableStateOf("") }
 
     TextField(
@@ -94,6 +116,7 @@ fun SearchBar() {
         singleLine = true,
         onValueChange = { newText ->
             searchText = newText
+            //recipes.value = sortByName(searchText)
         },
         leadingIcon = {
             Icon(
@@ -115,7 +138,11 @@ fun SearchBar() {
 }
 
 @Composable
-fun TagsRow() {
+fun TagsRow(onClick: () -> Unit) {
+    val searchTags = remember { mutableStateOf(listOf<Tag_List>()) }
+
+    fetchSearchTags(searchTags)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,26 +154,80 @@ fun TagsRow() {
                 .weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            TempDataObject.tags.forEach { tagName ->
+            searchTags.value.forEach { tag ->
                 item {
-                    TagButton(text = tagName) {}
+                    TagButton(text = tag.Tag) {}
                 }
             }
         }
 
         // Add Tags Button
         Button(
-            onClick = {},
-            colors = ButtonDefaults.buttonColors(Color.DarkGray),
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(Color.DarkGray)
         ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = "",
-                tint = Color.LightGray,
-                modifier = Modifier
-                    .size(25.dp)
-            )
+            Text(text = "Add Tags", fontSize = 12.sp, color = Color.White)
         }
+    }
+}
+
+@Composable
+fun CreateTagRow(onCreate: (tagName: String) -> Unit, onCancel: () -> Unit) {
+    var tagName by remember { mutableStateOf("") }
+    var requireText by remember { mutableStateOf(false) }
+
+    Row(
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 25.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.green_check),
+            contentDescription = ""
+        )
+
+        Image(
+            painter = painterResource(id = R.drawable.green_check),
+            contentDescription = ""
+        )
+
+        BasicTextField(
+            value = tagName,
+            onValueChange = {
+
+            },
+            modifier = Modifier
+                .weight(1f)
+                .height(100.dp)
+                .padding(15.dp)
+                .clip(
+                    RoundedCornerShape(20.dp)
+                )
+                .border(
+                    width = 2.dp,
+                    if (requireText) Color.Red else AppColor.BUTTON_OUTLINE,
+                    RoundedCornerShape(20.dp)
+                ),
+            enabled = true,
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(AppColor.BACKGROUND_SECONDARY)
+                        .padding(all = 10.dp),
+                ) {
+                    if (tagName == "") {
+                        Text(
+                            text = "Name",
+                            color = AppColor.BACKGROUND_PRIMARY,
+                            fontSize = 20.sp
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
     }
 }
 
@@ -160,24 +241,13 @@ fun TagButton(
         colors = ButtonDefaults.buttonColors(AppColor.TAG_BUTTON_GREEN),
         shape = RoundedCornerShape(50.dp)
     ) {
-        Icon(
-            Icons.Default.Close,
-            contentDescription = "",
-            tint = Color.DarkGray,
-            modifier = Modifier
-                .size(17.dp)
-        )
-        Spacer(modifier = Modifier.width(3.dp))
         Text(text = text, fontSize = 12.sp, color = Color.White)
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun RatingSelect(
-    modifier: Modifier = Modifier,
-    rating: Int
-) {
+fun RatingSelect(modifier: Modifier = Modifier, rating: Int?, recipes: MutableState<List<Recipe>?>) {
     var ratingState by remember {
         mutableStateOf(rating)
     }
@@ -206,6 +276,7 @@ fun RatingSelect(
                             MotionEvent.ACTION_DOWN -> {
                                 selected = true
                                 ratingState = i
+                                //recipes.value = sortByRating(ratingState)
                             }
                             MotionEvent.ACTION_UP -> {
                                 selected = false
@@ -213,14 +284,32 @@ fun RatingSelect(
                         }
                         true
                     },
-                tint = if (i <= ratingState) Color(0xfffad428) else Color(0xFF757574)
+                tint = if (i <= ratingState!!) Color(0xfffad428) else Color(0xFF757574)
             )
         }
     }
 }
 
+fun sortByName (recipeName: String?): List<Recipe>? {
+    return db?.readData()?.getRecipeListByRecipeName(recipeName)
+}
+
+fun sortByRating (rating: Int?): List<Recipe>? {
+    return db?.readData()?.getRecipeListByRating(rating)
+}
+
+fun sortByTag (tag: String?) {
+    val recipeNamesList = tag?.let { db?.readData()?.getRecipeNamesByTag(it) }
+
+    if (recipeNamesList != null) {
+        for (element in recipeNamesList) {
+            sortByName(element)
+        }
+    }
+}
+
 @Composable
-fun RecipeScrollable(recipes: List<Recipe>) {
+fun RecipeScrollable(recipes: MutableState<List<Recipe>?>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,7 +317,7 @@ fun RecipeScrollable(recipes: List<Recipe>) {
             .padding(start = 20.dp, end = 20.dp),
         verticalArrangement = Arrangement.spacedBy(25.dp)
     ) {
-        recipes.forEachIndexed { index, recipe ->
+        recipes.value?.forEachIndexed { index, recipe ->
             item {
                 RecipeScrollableItem(recipe = recipe, index = index)
             }
@@ -310,7 +399,7 @@ fun RecipeScrollableItem(recipe: Recipe, index: Int) {
 
             Spacer(modifier = Modifier.width(3.dp))
 
-            Text(text = recipe.time, fontSize = 15.sp)
+            Text(text = minuteToString(recipe.time), fontSize = 15.sp)
         }
 
         if (ScreenManager.selectedRecipeIndex == index) {
@@ -390,7 +479,7 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
             ) {
                 recipe.ingredients.forEach { ingredient ->
                     item {
-                        Text(text = "${ingredient.weight} ${ingredient.name}", fontSize = 14.sp)
+                        Text(text = "${ingredient.Quantity} ${ingredient.Unit} ${ingredient.IngredientName}", fontSize = 14.sp)
                     }
                 }
             }
@@ -421,7 +510,7 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
                 colors = ButtonDefaults.buttonColors(Color.Green),
                 shape = RoundedCornerShape(5.dp),
                 onClick = {
-                    ScreenManager.selectedScreen =
+                    ScreenManager.selectedHomeScreen =
                         ScreenManager.RECIPE_COOKING_SCREEN
                 }
             ) {
