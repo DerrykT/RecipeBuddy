@@ -79,7 +79,11 @@ fun CreateRecipeScreen(onCreate: (recipe: Recipe) -> Unit) {
 
         Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.fillMaxSize()) {
             MainInputSection(rating, title, bitmap) {
-                val validRecipe = (title.value != null && rating.value != 0 && )
+                val validRecipe = (title.value != null && rating.value != 0 && instructions.value.isNotEmpty())
+
+                if(validRecipe) {
+
+                }
             }
         }
 
