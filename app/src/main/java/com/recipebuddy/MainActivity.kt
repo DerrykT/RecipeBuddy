@@ -29,8 +29,6 @@ class MainActivity : ComponentActivity() {
 
         DatabaseManager.populate(this)
 
-
-
         setContent {
             Box() {
                 HomeScreen()
