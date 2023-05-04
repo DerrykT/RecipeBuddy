@@ -281,9 +281,11 @@ fun formatRecipes(unformattedRecipes: List<Recipe_Info>): List<Recipe> {
 fun formatRecipe(unformattedRecipe: Recipe_Info): Recipe {
     val ingredients = db?.readData()?.getRecipeIngredients(unformattedRecipe.RecipeName) ?: listOf()
     val tags = db?.readData()?.getTagsByRecipeName(unformattedRecipe.RecipeName) ?: listOf()
-    if(unformattedRecipe.RecipeInstructions.last() == '*') unformattedRecipe.RecipeInstructions = unformattedRecipe.RecipeInstructions.dropLast(1)
+    if (unformattedRecipe.RecipeInstructions.last() == '*') unformattedRecipe.RecipeInstructions =
+        unformattedRecipe.RecipeInstructions.dropLast(1)
     val instructions = unformattedRecipe.RecipeInstructions.split('*')
-    if(unformattedRecipe.RecipeTimers.last() == '*') unformattedRecipe.RecipeTimers = unformattedRecipe.RecipeTimers.dropLast(1)
+    if (unformattedRecipe.RecipeTimers.last() == '*') unformattedRecipe.RecipeTimers =
+        unformattedRecipe.RecipeTimers.dropLast(1)
     val timers = unformattedRecipe.RecipeTimers.split('*')
     val formattedInstructions = mutableListOf<Instruction>()
     var totalTime = 0
@@ -455,7 +457,12 @@ fun persistTag(newTag: Tag_List, tagsState: MutableState<List<RecipeTag>>) {
     }
 }
 
-fun persistEditedRecipe(newRecipe: Recipe, originalRecipe: Recipe, displayedRecipesState: MutableState<List<Recipe>>, originalRecipesState: MutableState<List<Recipe>>) {
+fun persistEditedRecipe(
+    newRecipe: Recipe,
+    originalRecipe: Recipe,
+    displayedRecipesState: MutableState<List<Recipe>>,
+    originalRecipesState: MutableState<List<Recipe>>
+) {
     GlobalScope.launch(Dispatchers.IO) {
         try {
             db?.insertion()?.deleteRecipe(reverseFormatRecipe(originalRecipe))
@@ -510,6 +517,50 @@ fun persistRecipe(recipe: Recipe) {
     }
 }
 
+fun removeRecipe(recipe: Recipe) {
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+            db?.insertion()?.deleteRecipe(
+                reverseFormatRecipe(recipe)
+            )
+        } catch (_: Exception) {
+        }
+    }
+}
+
+fun removeTool(name: String) {
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+            db?.insertion()?.deleteTool(Tool_List(name))
+        } catch (_: Exception) {
+        }
+    }
+}
+
+fun removeTag(name: String) {
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+
+            db?.insertion()?.deleteTag(Tag_List(name))
+        } catch (_: Exception) {
+        }
+    }
+}
+
+fun removeIngredient(name: String) {
+    GlobalScope.launch(Dispatchers.IO) {
+        try {
+            db?.insertion()?.deleteIngredient(name)
+
+            withContext(Dispatchers.Main) {
+                ScreenManager.ingredientsState.value =
+                    ScreenManager.ingredientsState.value.filter { it.IngredientName != name }
+            }
+        } catch (_: Exception) {
+        }
+    }
+}
+
 data class Recipe(
     val name: String,
     val rating: Int,
@@ -521,7 +572,16 @@ data class Recipe(
     val imageBitmap: Bitmap
 )
 
-fun Recipe.clone() = Recipe(this.name, this.rating, this.time, this.tags, this.ingredients, this.tools, this.instructions, this.imageBitmap)
+fun Recipe.clone() = Recipe(
+    this.name,
+    this.rating,
+    this.time,
+    this.tags,
+    this.ingredients,
+    this.tools,
+    this.instructions,
+    this.imageBitmap
+)
 
 data class Instruction(val text: String, val time: Int?)
 

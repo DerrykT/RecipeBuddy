@@ -63,6 +63,15 @@ interface Insertion {
     @Delete
     fun deleteRecipe(recipeInfo: Recipe_Info)
 
+    @Delete
+    fun deleteTool(toolList: Tool_List)
+
+    @Delete
+    fun deleteTag(tagList: Tag_List)
+
+    @Query("DELETE FROM Ingredient_List WHERE IngredientName = :name")
+    fun deleteIngredient(name: String)
+
     @Insert
     fun insertIngredientList(ingredientList: Ingredient_List): Long
 
@@ -91,7 +100,7 @@ interface Insertion {
     Tag_List::class,
     Recipe_Tags::class,
     Users::class,
-], version = 8)
+], version = 11)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun insertion(): Insertion
     abstract fun readData(): ReadData

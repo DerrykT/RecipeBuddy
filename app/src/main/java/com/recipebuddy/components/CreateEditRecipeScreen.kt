@@ -108,8 +108,18 @@ fun CreateEditRecipeScreen(
                 selectedToolsState,
                 selectedIngredientsState,
                 ingredientsState,
-                toolsState
-            )
+                toolsState,
+                recipe != null,
+            ) {
+                ScreenManager.originalRecipesState.value =
+                    ScreenManager.originalRecipesState.value.filter { it.name != recipe?.name }
+                ScreenManager.displayedRecipesState.value =
+                    ScreenManager.displayedRecipesState.value.filter { it.name != recipe?.name }
+
+                if (recipe != null) removeRecipe(recipe)
+
+                ScreenManager.selectedHomeScreen = ScreenManager.RECIPE_HOME_SCREEN
+            }
         }
 
         Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.fillMaxSize()) {
@@ -142,7 +152,7 @@ fun CreateEditRecipeScreen(
                                 var unit = ""
 
                                 ingredientsState.value.forEach { ingredient ->
-                                    if(ingredient.IngredientName == it.key) unit = ingredient.Unit
+                                    if (ingredient.IngredientName == it.key) unit = ingredient.Unit
                                 }
 
                                 RecipeIngredientList(it.key, it.value, unit)
@@ -153,16 +163,17 @@ fun CreateEditRecipeScreen(
                         )
                     )
                 } else {
-                    if(titleState.value.isEmpty()) requiredTitleOutlineColor.value = Color.Red
+                    if (titleState.value.isEmpty()) requiredTitleOutlineColor.value = Color.Red
                     else requiredTitleOutlineColor.value = Color.Transparent
 
-                    if(ratingState.value == 0) requiredRatingOutlineColor.value = Color.Red
+                    if (ratingState.value == 0) requiredRatingOutlineColor.value = Color.Red
                     else requiredRatingOutlineColor.value = Color.Transparent
 
-                    if(hourState.value == null && minuteState.value == null) requiredTimeOutlineColor.value = Color.Red
+                    if (hourState.value == null && minuteState.value == null) requiredTimeOutlineColor.value =
+                        Color.Red
                     else requiredTimeOutlineColor.value = Color.Transparent
 
-                    if(instructionsState.value.isEmpty()) requiredTextColor.value = Color.Red
+                    if (instructionsState.value.isEmpty()) requiredTextColor.value = Color.Red
                     else requiredTextColor.value = Color.Black
                 }
             }
@@ -619,7 +630,9 @@ private fun ToolAndIngredientInputSection(
     selectedToolsState: MutableState<MutableSet<String>>,
     selectedIngredientsState: MutableState<MutableMap<String, Double>>,
     ingredients: MutableState<List<Ingredient_List>>,
-    tools: MutableState<List<String>>
+    tools: MutableState<List<String>>,
+    showDelete: Boolean,
+    onDelete: () -> Unit
 ) {
     val minHeight = 50.dp
     val maxHeight = getScreenHeight() - MAIN_INPUT_SCREEN_SIZE
@@ -717,6 +730,29 @@ private fun ToolAndIngredientInputSection(
                         }
 
                 )
+            }
+
+            if (showDelete) {
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            end = 15.dp,
+                            top = if (currentHeight <= minHeight) 15.dp
+                            else 5.dp
+                        )
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.delete),
+                        contentDescription = "",
+                        modifier = Modifier
+                            .clickable {
+                                onDelete()
+                            }
+
+                    )
+                }
             }
         }
 

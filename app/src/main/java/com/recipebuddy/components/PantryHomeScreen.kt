@@ -26,12 +26,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.recipebuddy.R
 import com.recipebuddy.database.Ingredient_List
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.*
 
 @Composable
-fun PantryHomeScreen(ingredientsState: MutableState<List<Ingredient_List>>, toolsState: MutableState<List<String>>) {
+fun PantryHomeScreen(
+    ingredientsState: MutableState<List<Ingredient_List>>,
+    toolsState: MutableState<List<String>>
+) {
     var showAddDialog by remember { mutableStateOf(false) }
 
     Box() {
@@ -124,8 +128,23 @@ private fun IngredientsBox(
     ) {
         ingredients.value.forEach { ingredient ->
             item {
-                Text(text = ingredient.IngredientName, fontSize = 25.sp)
-
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(text = ingredient.IngredientName, fontSize = 25.sp)
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.delete),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .clickable {
+                                    removeIngredient(ingredient.IngredientName)
+                                }
+                        )
+                    }
+                }
             }
         }
     }
@@ -140,7 +159,25 @@ private fun ToolsBox(modifier: Modifier = Modifier, tools: MutableState<List<Str
     ) {
         tools.value.forEach { toolName ->
             item {
-                Text(text = toolName, fontSize = 25.sp)
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(text = toolName, fontSize = 25.sp)
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.delete),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .clickable {
+                                    ScreenManager.toolsState.value = ScreenManager.toolsState.value.filter { it != toolName }
+
+                                    removeTool(toolName)
+                                }
+                        )
+                    }
+                }
             }
         }
     }
