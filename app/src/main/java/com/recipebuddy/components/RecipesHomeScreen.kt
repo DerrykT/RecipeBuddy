@@ -38,6 +38,7 @@ import com.recipebuddy.R
 import com.recipebuddy.database.Tag_List
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.*
+import kotlinx.coroutines.Job
 
 @Composable
 fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
@@ -58,6 +59,8 @@ fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
             TagsRow(searchTagsState) {
                 isCreatingTag = true
             }
+
+            RatingSelect(rating = 1, recipes = recipes)
 
             Spacer(modifier = Modifier.height(5.dp))
 
@@ -107,13 +110,15 @@ fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
 @Composable
 fun SearchBar(recipes: MutableState<List<Recipe>>) {
     var searchText by remember { mutableStateOf("") }
+    var runningSearch by remember { mutableStateOf<Job?>(null) }
 
     TextField(
         value = searchText,
         singleLine = true,
         onValueChange = { newText ->
             searchText = newText
-            //recipes.value = sortByName(searchText)
+            runningSearch?.cancel()
+            runningSearch = sortByName(searchText, recipes)
         },
         leadingIcon = {
             Icon(
@@ -136,7 +141,7 @@ fun SearchBar(recipes: MutableState<List<Recipe>>) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun RatingSelect(modifier: Modifier = Modifier, rating: Int?, recipes: MutableState<List<Recipe>?>) {
+fun RatingSelect(modifier: Modifier = Modifier, rating: Int?, recipes: MutableState<List<Recipe>>) {
     var ratingState by remember {
         mutableStateOf(rating)
     }

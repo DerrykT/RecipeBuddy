@@ -145,7 +145,6 @@ object DatabaseManager {
                 try {
                     db?.insertion()?.insertRecipeInfo(recipe)
                 } catch (exception: SQLiteConstraintException) {
-                    throw Exception("IG this is the issue")
                 }
 
                 val recipeIngredients = listOf(
