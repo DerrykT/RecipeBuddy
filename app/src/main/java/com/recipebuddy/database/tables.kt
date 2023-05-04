@@ -90,7 +90,7 @@ interface Insertion {
     Tag_List::class,
     Recipe_Tags::class,
     Users::class,
-], version = 7)
+], version = 8)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun insertion(): Insertion
     abstract fun readData(): ReadData

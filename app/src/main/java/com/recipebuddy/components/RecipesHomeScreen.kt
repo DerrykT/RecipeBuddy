@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -30,17 +31,16 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recipebuddy.R
+import com.recipebuddy.components.ScreenManager.displayedRecipesState
+import com.recipebuddy.components.ScreenManager.originalRecipesState
+import com.recipebuddy.components.ScreenManager.searchTagsState
 import com.recipebuddy.database.Tag_List
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.*
 import java.util.*
 
 @Composable
-fun RecipeHomeScreen(
-    displayedRecipes: MutableState<List<Recipe>>,
-    originalRecipes: MutableState<List<Recipe>>,
-    searchTagsState: MutableState<List<RecipeTag>>
-) {
+fun RecipeHomeScreen() {
     var isCreatingTag by remember { mutableStateOf(false) }
 
     Box {
@@ -51,17 +51,17 @@ fun RecipeHomeScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             // Search Bar
-            SearchBar(displayedRecipes, originalRecipes)
+            SearchBar()
 
             // Tags Row
-            TagsRow(searchTagsState, displayedRecipes, originalRecipes) {
+            TagsRow() {
                 isCreatingTag = !isCreatingTag
             }
 
             Spacer(modifier = Modifier.height(5.dp))
 
             // Recipe List
-            RecipeScrollable(displayedRecipes)
+            RecipeScrollable()
         }
 
         Box(
@@ -103,10 +103,7 @@ fun RecipeHomeScreen(
 }
 
 @Composable
-fun SearchBar(
-    displayedRecipes: MutableState<List<Recipe>>,
-    originalRecipes: MutableState<List<Recipe>>
-) {
+fun SearchBar() {
     var searchText by remember { mutableStateOf("") }
 
     TextField(
@@ -114,7 +111,7 @@ fun SearchBar(
         singleLine = true,
         onValueChange = { newText ->
             searchText = newText
-            displayedRecipes.value = sortByName(searchText, originalRecipes.value)
+            displayedRecipesState.value = sortByName(searchText, originalRecipesState.value)
         },
         leadingIcon = {
             Icon(
@@ -137,9 +134,6 @@ fun SearchBar(
 
 @Composable
 fun TagsRow(
-    searchTags: MutableState<List<RecipeTag>>,
-    displayedRecipes: MutableState<List<Recipe>>,
-    originalRecipes: MutableState<List<Recipe>>,
     onClick: () -> Unit
 ) {
     val selectedTagNames by remember { mutableStateOf(mutableSetOf<String>()) }
@@ -155,27 +149,31 @@ fun TagsRow(
                 .weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            searchTags.value.forEachIndexed { index, tag ->
+            searchTagsState.value.forEachIndexed { index, tag ->
                 item {
-                    TagButton(tag.text, searchTags.value[index].isSelected) {
+                    TagButton(tag.text, searchTagsState.value[index].isSelected) {
                         if (tag.isSelected) {
-                            searchTags.value[index].isSelected = false
+                            searchTagsState.value[index].isSelected = false
 
                             selectedTagNames.remove(tag.text)
                             if (selectedTagNames.size == 0) {
-                                displayedRecipes.value = originalRecipes.value
+                                displayedRecipesState.value = originalRecipesState.value
                             } else {
-                                var tempList = originalRecipes.value
+                                var tempList = originalRecipesState.value
                                 selectedTagNames.forEach {
                                     tempList = sortByTag(it, tempList)
                                 }
-                                displayedRecipes.value = tempList
+                                displayedRecipesState.value = tempList
                             }
                         } else {
-                            searchTags.value[index].isSelected = true
+                            searchTagsState.value[index].isSelected = true
 
                             selectedTagNames.add(tag.text)
-                            displayedRecipes.value = sortByTag(tag.text, displayedRecipes.value)
+                            displayedRecipesState.value =
+                                sortByTag(tag.text, displayedRecipesState.value)
+                            displayedRecipesState.value.forEach {
+                                Log.d("Debugging", "$$=====${it.name}")
+                            }
                         }
                     }
                 }
@@ -228,7 +226,7 @@ fun TagButton(
 }
 
 @Composable
-fun RecipeScrollable(displayedRecipes: MutableState<List<Recipe>>) {
+fun RecipeScrollable() {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -236,11 +234,9 @@ fun RecipeScrollable(displayedRecipes: MutableState<List<Recipe>>) {
             .padding(start = 20.dp, end = 20.dp),
         verticalArrangement = Arrangement.spacedBy(25.dp)
     ) {
-        displayedRecipes.value.forEachIndexed { index, recipe ->
-            Log.d("Debugging", recipe.name)
-            item {
-                RecipeScrollableItem(recipe = recipe, index = index)
-            }
+        itemsIndexed(displayedRecipesState.value) { index, recipe ->
+
+            RecipeScrollableItem(recipe = recipe, index = index)
         }
     }
 }

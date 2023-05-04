@@ -458,9 +458,6 @@ fun persistTag(newTag: Tag_List, tagsState: MutableState<List<RecipeTag>>) {
 
 fun persistEditedRecipe(newRecipe: Recipe, originalRecipe: Recipe, displayedRecipesState: MutableState<List<Recipe>>, originalRecipesState: MutableState<List<Recipe>>) {
     GlobalScope.launch(Dispatchers.IO) {
-        displayedRecipesState.value = displayedRecipesState.value.filter { it.name != originalRecipe.name }
-        originalRecipesState.value = originalRecipesState.value.filter { it.name != originalRecipe.name }
-
         try {
             db?.insertion()?.deleteRecipe(reverseFormatRecipe(originalRecipe))
         } catch (exception: Exception) {

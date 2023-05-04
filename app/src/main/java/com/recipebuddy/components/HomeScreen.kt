@@ -26,15 +26,26 @@ import com.recipebuddy.components.ScreenManager.PANTRY_HOME_SCREEN
 import com.recipebuddy.components.ScreenManager.PROFILE_HOME_SCREEN
 import com.recipebuddy.components.ScreenManager.RECIPE_COOKING_SCREEN
 import com.recipebuddy.components.ScreenManager.RECIPE_HOME_SCREEN
+import com.recipebuddy.components.ScreenManager.displayedRecipesState
 import com.recipebuddy.components.ScreenManager.editedRecipe
+import com.recipebuddy.components.ScreenManager.ingredientsState
 import com.recipebuddy.components.ScreenManager.lastRecipePageScreen
+import com.recipebuddy.components.ScreenManager.originalRecipesState
+import com.recipebuddy.components.ScreenManager.searchTagsState
 import com.recipebuddy.components.ScreenManager.selectedRecipeIndex
 import com.recipebuddy.components.ScreenManager.selectedHomeScreen
+import com.recipebuddy.components.ScreenManager.toolsState
 import com.recipebuddy.database.Ingredient_List
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.*
 
 object ScreenManager {
+    val originalRecipesState = mutableStateOf(listOf<Recipe>())
+    val displayedRecipesState = mutableStateOf(listOf<Recipe>())
+    val searchTagsState = mutableStateOf(listOf<RecipeTag>())
+    val ingredientsState = mutableStateOf(listOf<Ingredient_List>())
+    val toolsState = mutableStateOf(listOf<String>())
+
     var selectedHomeScreen by mutableStateOf(0)
     var lastRecipePageScreen by mutableStateOf(0)
     var selectedRecipeIndex by mutableStateOf(-1)
@@ -54,17 +65,13 @@ object ScreenManager {
         editedRecipe = recipe
         selectedHomeScreen = EDIT_RECIPE_SCREEN
     }
+
+    fun getOriginalRecipe() = originalRecipesState.value
 }
 
 @RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun HomeScreen() {
-    val originalRecipesState = remember { mutableStateOf(listOf<Recipe>()) }
-    val displayedRecipesState = remember { mutableStateOf(listOf<Recipe>()) }
-    val searchTagsState = remember { mutableStateOf(listOf<RecipeTag>()) }
-    val ingredientsState = remember { mutableStateOf(listOf<Ingredient_List>()) }
-    val toolsState = remember { mutableStateOf(listOf<String>()) }
-
     var executedFetch by remember { mutableStateOf(false) }
 
     if (!executedFetch) {
@@ -75,18 +82,18 @@ fun HomeScreen() {
         executedFetch = true
     }
 
-    Thread(Runnable {
-        Thread.sleep(5000)
-        Log.d("Debugging", "\n\n")
-        displayedRecipesState.value.forEach {
-            Log.d("Debugging", it.name)
-        }
-        Log.d("Debugging", "=====")
-        originalRecipesState.value.forEach {
-            Log.d("Debugging", it.name)
-        }
-        Log.d("Debugging", "\n\n")
-    }).start()
+//    Thread(
+//        Runnable {
+//            while (true) {
+//                Thread.sleep(5000)
+//                Log.d("Debugging", "\n\n\n======>\n")
+//                displayedRecipesState.value.forEach {
+//                    Log.d("Debugging", it.name)
+//                }
+//                Log.d("Debugging", "\n======>\n\n\n")
+//            }
+//        }
+//    ).start()
 
     Box(
         modifier = Modifier
@@ -155,20 +162,12 @@ fun HomeScreen() {
                     when (lastRecipePageScreen) {
                         RECIPE_HOME_SCREEN -> {
                             lastRecipePageScreen = RECIPE_HOME_SCREEN
-                            RecipeHomeScreen(
-                                displayedRecipesState,
-                                originalRecipesState,
-                                searchTagsState
-                            )
+                            RecipeHomeScreen()
                         }
                         RECIPE_COOKING_SCREEN -> {
                             if (selectedRecipeIndex < 0) {
                                 selectedHomeScreen = RECIPE_HOME_SCREEN
-                                RecipeHomeScreen(
-                                    displayedRecipesState,
-                                    originalRecipesState,
-                                    searchTagsState
-                                )
+                                RecipeHomeScreen()
                             } else {
                                 lastRecipePageScreen = RECIPE_COOKING_SCREEN
                                 RecipeCookingScreen(recipe = displayedRecipesState.value[selectedRecipeIndex])
@@ -182,11 +181,7 @@ fun HomeScreen() {
                 RECIPE_COOKING_SCREEN -> {
                     if (selectedRecipeIndex < 0) {
                         selectedHomeScreen = RECIPE_HOME_SCREEN
-                        RecipeHomeScreen(
-                            displayedRecipesState,
-                            originalRecipesState,
-                            searchTagsState
-                        )
+                        RecipeHomeScreen()
                     } else {
                         lastRecipePageScreen = RECIPE_COOKING_SCREEN
                         RecipeCookingScreen(recipe = displayedRecipesState.value[selectedRecipeIndex])
