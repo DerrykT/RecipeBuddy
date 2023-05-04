@@ -112,7 +112,7 @@ interface ReadData{
     @Query("SELECT * FROM Tag_List")
     fun getTags(): List<Tag_List>
 
-    @Query("SELECT * FROM Recipe_Info")
+    @Query("SELECT * FROM Recipe_Info LIMIT 10")
     fun getRecipes(): List<Recipe_Info>
 
     @Query("SELECT * FROM Ingredient_List")
