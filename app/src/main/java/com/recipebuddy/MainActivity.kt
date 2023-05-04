@@ -10,12 +10,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.recipebuddy.components.HomeScreen
 import com.recipebuddy.components.ProfileHomeScreen
+import com.recipebuddy.util.DatabaseManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        DatabaseManager.initDatabase(this)
+
+        DatabaseManager.populate()
+
         setContent {
-            HomeScreen()
+            Box() {
+                HomeScreen()
+            }
         }
 
     }

@@ -9,11 +9,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -23,16 +25,18 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.recipebuddy.R
+import com.recipebuddy.database.Tag_List
 import com.recipebuddy.ui.resources.AppColor
-import com.recipebuddy.util.Recipe
-import com.recipebuddy.util.TempDataObject
+import com.recipebuddy.util.*
 
 @Composable
-fun RecipeHomeScreen() {
+fun RecipeHomeScreen(recipes: MutableState<List<Recipe>>) {
     Box {
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            var isCreatingTag by remember { mutableStateOf(false) }
+
             // Initial top spacing
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -40,34 +44,54 @@ fun RecipeHomeScreen() {
             SearchBar()
 
             // Tags Row
-            TagsRow()
+            TagsRow() {
+                isCreatingTag = true
+            }
+
+            if (isCreatingTag) {
+                CreateTagRow(
+                    onCreate = { tagName ->
+                        // Add tag
+                        isCreatingTag = false
+                    },
+                    onCancel = {
+                        isCreatingTag = false
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(5.dp))
 
             // Recipe List
-            RecipeScrollable(recipes = TempDataObject.recipes)
+            RecipeScrollable(recipes)
         }
 
-//        Box(
-//            contentAlignment = Alignment.BottomEnd,
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(13.dp)
-//        ) {
-//            Button(
-//                colors = ButtonDefaults.buttonColors(Color.White),
-//                shape = CircleShape,
-//                modifier = Modifier
-//                    .border(3.dp, Color.Black, shape = CircleShape)
-//                    .width(50.dp)
-//                    .height(50.dp),
-//                onClick = {
-//                    ScreenManager.selectedScreen = ScreenManager.CREATE_RECIPE_SCREEN
-//                }
-//            ) {
-//                Image(painter = painterResource(id = R.drawable.create_icon), contentDescription = "", modifier = Modifier.width(40.dp).height(40.dp))
-//            }
-//        }
+        Box(
+            contentAlignment = Alignment.BottomEnd,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(13.dp)
+        ) {
+            Button(
+                colors = ButtonDefaults.buttonColors(Color.White),
+                shape = CircleShape,
+                modifier = Modifier
+                    .border(3.dp, Color.Black, shape = CircleShape)
+                    .width(50.dp)
+                    .height(50.dp),
+                onClick = {
+                    ScreenManager.selectedHomeScreen = ScreenManager.CREATE_RECIPE_SCREEN
+                }
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.create_icon),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(40.dp)
+                )
+            }
+        }
     }
 }
 
@@ -113,7 +137,11 @@ fun SearchBar() {
 }
 
 @Composable
-fun TagsRow() {
+fun TagsRow(onClick: () -> Unit) {
+    val searchTags = remember { mutableStateOf(listOf<Tag_List>()) }
+
+    fetchSearchTags(searchTags)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,22 +153,80 @@ fun TagsRow() {
                 .weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            TempDataObject.tags.forEach { tagName ->
+            searchTags.value.forEach { tag ->
                 item {
-                    TagButton(text = tagName) {}
+                    TagButton(text = tag.Tag) {}
                 }
             }
         }
 
         // Add Tags Button
         Button(
-            onClick = {},
+            onClick = onClick,
             colors = ButtonDefaults.buttonColors(Color.DarkGray)
         ) {
             Text(text = "Add Tags", fontSize = 12.sp, color = Color.White)
-
-            // IMAGE
         }
+    }
+}
+
+@Composable
+fun CreateTagRow(onCreate: (tagName: String) -> Unit, onCancel: () -> Unit) {
+    var tagName by remember { mutableStateOf("") }
+    var requireText by remember { mutableStateOf(false) }
+
+    Row(
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 25.dp)
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.green_check),
+            contentDescription = ""
+        )
+
+        Image(
+            painter = painterResource(id = R.drawable.green_check),
+            contentDescription = ""
+        )
+
+        BasicTextField(
+            value = tagName,
+            onValueChange = {
+
+            },
+            modifier = Modifier
+                .weight(1f)
+                .height(100.dp)
+                .padding(15.dp)
+                .clip(
+                    RoundedCornerShape(20.dp)
+                )
+                .border(
+                    width = 2.dp,
+                    if (requireText) Color.Red else AppColor.BUTTON_OUTLINE,
+                    RoundedCornerShape(20.dp)
+                ),
+            enabled = true,
+            decorationBox = { innerTextField ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(AppColor.BACKGROUND_SECONDARY)
+                        .padding(all = 10.dp),
+                ) {
+                    if (tagName == "") {
+                        Text(
+                            text = "Name",
+                            color = AppColor.BACKGROUND_PRIMARY,
+                            fontSize = 20.sp
+                        )
+                    }
+                    innerTextField()
+                }
+            }
+        )
     }
 }
 
@@ -159,7 +245,7 @@ fun TagButton(
 }
 
 @Composable
-fun RecipeScrollable(recipes: List<Recipe>) {
+fun RecipeScrollable(recipes: MutableState<List<Recipe>>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -167,7 +253,7 @@ fun RecipeScrollable(recipes: List<Recipe>) {
             .padding(start = 20.dp, end = 20.dp),
         verticalArrangement = Arrangement.spacedBy(25.dp)
     ) {
-        recipes.forEachIndexed { index, recipe ->
+        recipes.value.forEachIndexed { index, recipe ->
             item {
                 RecipeScrollableItem(recipe = recipe, index = index)
             }
@@ -249,7 +335,7 @@ fun RecipeScrollableItem(recipe: Recipe, index: Int) {
 
             Spacer(modifier = Modifier.width(3.dp))
 
-            Text(text = recipe.time, fontSize = 15.sp)
+            Text(text = minuteToString(recipe.time), fontSize = 15.sp)
         }
 
         if (ScreenManager.selectedRecipeIndex == index) {
@@ -329,7 +415,7 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
             ) {
                 recipe.ingredients.forEach { ingredient ->
                     item {
-                        Text(text = "${ingredient.weight} ${ingredient.name}", fontSize = 14.sp)
+                        Text(text = "${ingredient.Quantity} ${ingredient.Unit} ${ingredient.IngredientName}", fontSize = 14.sp)
                     }
                 }
             }
@@ -360,7 +446,7 @@ fun ExpandedRecipeDetailsView(recipe: Recipe) {
                 colors = ButtonDefaults.buttonColors(Color.Green),
                 shape = RoundedCornerShape(5.dp),
                 onClick = {
-                    ScreenManager.selectedScreen =
+                    ScreenManager.selectedHomeScreen =
                         ScreenManager.RECIPE_COOKING_SCREEN
                 }
             ) {
