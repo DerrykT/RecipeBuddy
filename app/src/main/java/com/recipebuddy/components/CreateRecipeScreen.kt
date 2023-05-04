@@ -78,7 +78,9 @@ fun CreateRecipeScreen(onCreate: (recipe: Recipe) -> Unit) {
         }
 
         Box(contentAlignment = Alignment.TopCenter, modifier = Modifier.fillMaxSize()) {
-            MainInputSection(rating, title, bitmap)
+            MainInputSection(rating, title, bitmap) {
+                val validRecipe = (title.value != null && rating.value != 0 && )
+            }
         }
 
         if (showAddDialog) {
@@ -123,14 +125,14 @@ fun CreateRecipeScreen(onCreate: (recipe: Recipe) -> Unit) {
 }
 
 @Composable
-private fun MainInputSection(rating: MutableState<Int>, title: MutableState<String>, bitmap: MutableState<Bitmap?>) {
-//    var imageUri by remember { mutableStateOf<Uri?>(null) }
-//    val context = LocalContext.current
+private fun MainInputSection(rating: MutableState<Int>, title: MutableState<String>, bitmap: MutableState<Bitmap?>, onCreate: () -> Unit) {
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    val context = LocalContext.current
 
-//    val launcher = rememberLauncherForActivityResult(contract =
-//    ActivityResultContracts.GetContent()) { uri: Uri? ->
-//        imageUri = uri
-//    }
+    val launcher = rememberLauncherForActivityResult(contract =
+    ActivityResultContracts.GetContent()) { uri: Uri? ->
+        imageUri = uri
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -161,6 +163,20 @@ private fun MainInputSection(rating: MutableState<Int>, title: MutableState<Stri
                         }
                 )
             }
+
+            Box(
+                contentAlignment = Alignment.CenterEnd,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.green_check),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .clickable {
+                            onCreate()
+                        }
+                )
+            }
         }
 
         Column {
@@ -172,31 +188,19 @@ private fun MainInputSection(rating: MutableState<Int>, title: MutableState<Stri
                     .fillMaxWidth()
                     .padding(top = 8.dp, bottom = 8.dp)
                     .clickable {
-//                        launcher.launch("image/*")
-//
-//                        imageUri?.let {
-//                            if (Build.VERSION.SDK_INT < 28) {
-//                                bitmap.value = MediaStore.Images
-//                                    .Media.getBitmap(context.contentResolver,it)
-//
-//                            } else {
-//                                val source = ImageDecoder
-//                                    .createSource(context.contentResolver,it)
-//                                bitmap.value = ImageDecoder.decodeBitmap(source)
-//                            }
+                        launcher.launch("image/*")
 
-//                            bitmap.value?.let {  btm ->
-//                                val outputStream: FileOutputStream?
-//                                try {
-//                                    outputStream = context.openFileOutput("${}.png", Context.MODE_PRIVATE)
-//                                    btm.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-//                                    outputStream.flush()
-//                                    outputStream.close()
-//                                } catch (e: Exception) {
-//                                    e.printStackTrace()
-//                                }
-//                            }
-//                        }
+                        imageUri?.let {
+                            if (Build.VERSION.SDK_INT < 28) {
+                                bitmap.value = MediaStore.Images
+                                    .Media.getBitmap(context.contentResolver,it)
+
+                            } else {
+                                val source = ImageDecoder
+                                    .createSource(context.contentResolver,it)
+                                bitmap.value = ImageDecoder.decodeBitmap(source)
+                            }
+                        }
                     }
             ) {
                 Image(
