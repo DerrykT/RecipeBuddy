@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.room.Room
 import com.recipebuddy.R
+import com.recipebuddy.components.ScreenManager
 import com.recipebuddy.database.*
 import com.recipebuddy.util.DatabaseManager.db
 import kotlinx.coroutines.*
@@ -445,18 +446,21 @@ fun persistIngredient(
 
 fun persistTag(newTag: Tag_List, tagsState: MutableState<List<RecipeTag>>) {
     GlobalScope.launch(Dispatchers.IO) {
-        try {
-            db?.insertion()?.insertTagList(newTag)
+        if(tagsState.value.filter { it.text == newTag.Tag }.isEmpty()) {
+            try {
+                db?.insertion()?.insertTagList(newTag)
 
-            withContext(Dispatchers.Main) {
-                tagsState.value = listOf(RecipeTag(newTag.Tag, false)) + tagsState.value
+                withContext(Dispatchers.Main) {
+                    tagsState.value = listOf(RecipeTag(newTag.Tag, false)) + tagsState.value
+                }
+            } catch (exception: java.lang.Exception) {
+                Log.d("Debugging", "ISSUE")
             }
-        } catch (exception: java.lang.Exception) {
-            Log.d("Debugging", "ISSUE")
         }
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 fun persistEditedRecipe(
     newRecipe: Recipe,
     originalRecipe: Recipe,
@@ -464,6 +468,13 @@ fun persistEditedRecipe(
     originalRecipesState: MutableState<List<Recipe>>
 ) {
     GlobalScope.launch(Dispatchers.IO) {
+        if(newRecipe != originalRecipe) {
+            withContext(Dispatchers.Main) {
+                ScreenManager.originalRecipesState.value = ScreenManager.originalRecipesState.value.filter { it.name != originalRecipe.name }
+                ScreenManager.displayedRecipesState.value = ScreenManager.displayedRecipesState.value.filter { it.name != originalRecipe.name }
+            }
+        }
+
         try {
             db?.insertion()?.deleteRecipe(reverseFormatRecipe(originalRecipe))
         } catch (exception: Exception) {
@@ -540,9 +551,13 @@ fun removeTool(name: String) {
 fun removeTag(name: String) {
     GlobalScope.launch(Dispatchers.IO) {
         try {
-
             db?.insertion()?.deleteTag(Tag_List(name))
-        } catch (_: Exception) {
+
+            withContext(Dispatchers.Main) {
+                ScreenManager.searchTagsState.value =
+                    ScreenManager.searchTagsState.value.filter { it.text != name }
+            }
+        }catch (_: Exception) {
         }
     }
 }

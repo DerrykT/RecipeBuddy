@@ -144,6 +144,8 @@ fun ProfileHomeScreen() {
             }
         }
 
+        Spacer(modifier = Modifier.height(30.dp))
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -165,7 +167,9 @@ fun ProfileHomeScreen() {
                                 contentDescription = "",
                                 modifier = Modifier
                                     .clickable {
-                                        ScreenManager.searchTagsState.value = ScreenManager.searchTagsState.value.filter { it.text != tag.text }
+                                        ScreenManager.originalRecipesState.value.forEach {
+                                            if(it.tags.contains(tag.text)) return@clickable
+                                        }
 
                                         removeTag(tag.text)
                                     }
