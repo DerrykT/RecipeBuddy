@@ -446,16 +446,18 @@ fun persistIngredient(
 
 fun persistTag(newTag: Tag_List, tagsState: MutableState<List<RecipeTag>>) {
     GlobalScope.launch(Dispatchers.IO) {
-        if(tagsState.value.filter { it.text == newTag.Tag }.isEmpty()) {
-            try {
-                db?.insertion()?.insertTagList(newTag)
+        tagsState.value.forEach {
+            if(it.text == newTag.Tag) return@launch
+        }
 
-                withContext(Dispatchers.Main) {
-                    tagsState.value = listOf(RecipeTag(newTag.Tag, false)) + tagsState.value
-                }
-            } catch (exception: java.lang.Exception) {
-                Log.d("Debugging", "ISSUE")
+        try {
+            db?.insertion()?.insertTagList(newTag)
+
+            withContext(Dispatchers.Main) {
+                tagsState.value = listOf(RecipeTag(newTag.Tag, false)) + tagsState.value
             }
+        } catch (exception: java.lang.Exception) {
+            Log.d("Debugging", "ISSUE")
         }
     }
 }
