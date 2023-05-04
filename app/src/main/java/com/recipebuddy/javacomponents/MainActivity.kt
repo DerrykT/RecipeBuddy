@@ -29,12 +29,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Might not need this for onPause, but clearing user should be used for logout button
-    // May potentially store the verified user info in onPause once logged in??
-    // Idea: create "starter variables" for user and password to be used for logging in
-    // Save them if they are verified and the user logs in?
     protected override fun onPause() {
         super.onPause()
-        SaveSharedPreference.clearUser(this@MainActivity)
     }
 }
