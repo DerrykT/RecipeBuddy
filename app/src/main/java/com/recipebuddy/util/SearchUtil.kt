@@ -8,32 +8,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-fun sortByName (recipeName: String?, recipes: MutableState<List<Recipe>>) = GlobalScope.launch(Dispatchers.IO) {
-    val filtered = formatRecipes(db?.readData()?.getRecipeListByRecipeName(recipeName ?: "\'%\'") ?: listOf())
-    withContext(Dispatchers.Main) {
-        recipes.value = filtered
-    }
-}
+fun sortByName (recipePrefix: String, recipes: List<Recipe>) = recipes.filter { it.name.startsWith(recipePrefix) }
 
-
-fun sortByRating (rating: Int?, recipes: MutableState<List<Recipe>>) = GlobalScope.launch(Dispatchers.IO) {
-    val filtered = db?.readData()?.getRecipeListByRating(rating) ?: listOf()
-
-    withContext(Dispatchers.Main) {
-
-        recipes.value =
-            formatRecipes(filtered)
-    }
-}
-
-
-
-fun sortByTag (tag: String?) {
-    val recipeNamesList = tag?.let { db?.readData()?.getRecipeNamesByTag(it) }
-
-    if (recipeNamesList != null) {
-        for (element in recipeNamesList) {
-            //sortByName(element)
-        }
-    }
-}
+fun sortByTag (tag: String, recipes: List<Recipe>) = recipes.filter { it.tags.contains(tag) }

@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,8 +27,9 @@ import com.recipebuddy.components.ScreenManager.selectedRecipeIndex
 import com.recipebuddy.components.ScreenManager.selectedHomeScreen
 import com.recipebuddy.ui.resources.AppColor
 import com.recipebuddy.util.Recipe
+import com.recipebuddy.util.RecipeTag
 import com.recipebuddy.util.fetchFormattedRecipes
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.recipebuddy.util.fetchSearchTags
 
 object ScreenManager {
     var selectedHomeScreen by mutableStateOf(0)
@@ -48,9 +48,17 @@ object ScreenManager {
 
 @Composable
 fun HomeScreen() {
-    val recipes = remember { mutableStateOf(listOf<Recipe>()) }
+    val originalRecipesState = remember { mutableStateOf(listOf<Recipe>()) }
+    val displayedRecipesState = remember { mutableStateOf(listOf<Recipe>()) }
+    val searchTagsState = remember { mutableStateOf(listOf<RecipeTag>()) }
 
-    fetchFormattedRecipes(recipes)
+    var executedFetch by remember { mutableStateOf(false) }
+
+    if(!executedFetch) {
+        fetchSearchTags(searchTagsState)
+        fetchFormattedRecipes(originalRecipesState, displayedRecipesState)
+        executedFetch = true
+    }
 
     Column(
         modifier = Modifier
@@ -116,15 +124,15 @@ fun HomeScreen() {
                 when (lastRecipePageScreen) {
                     RECIPE_HOME_SCREEN -> {
                         lastRecipePageScreen = RECIPE_HOME_SCREEN
-                        RecipeHomeScreen(recipes)
+                        RecipeHomeScreen(displayedRecipesState, originalRecipesState, searchTagsState)
                     }
                     RECIPE_COOKING_SCREEN -> {
                         if (selectedRecipeIndex < 0) {
                             selectedHomeScreen = RECIPE_HOME_SCREEN
-                            RecipeHomeScreen(recipes)
+                            RecipeHomeScreen(displayedRecipesState, originalRecipesState, searchTagsState)
                         } else {
                             lastRecipePageScreen = RECIPE_COOKING_SCREEN
-                            RecipeCookingScreen(recipe = recipes.value[selectedRecipeIndex])
+                            RecipeCookingScreen(recipe = displayedRecipesState.value[selectedRecipeIndex])
                         }
                     }
 
@@ -135,14 +143,15 @@ fun HomeScreen() {
             RECIPE_COOKING_SCREEN -> {
                 if (selectedRecipeIndex < 0) {
                     selectedHomeScreen = RECIPE_HOME_SCREEN
-                    RecipeHomeScreen(recipes)
+                    RecipeHomeScreen(displayedRecipesState, originalRecipesState, searchTagsState)
                 } else {
                     lastRecipePageScreen = RECIPE_COOKING_SCREEN
-                    RecipeCookingScreen(recipe = recipes.value[selectedRecipeIndex])
+                    RecipeCookingScreen(recipe = displayedRecipesState.value[selectedRecipeIndex])
                 }
             }
             CREATE_RECIPE_SCREEN -> CreateRecipeScreen() { recipe ->
-                recipes.value = listOf(recipe) + recipes.value
+                displayedRecipesState.value = listOf(recipe) + displayedRecipesState.value
+                originalRecipesState.value = listOf(recipe) + originalRecipesState.value
             }
         }
     }

@@ -121,7 +121,7 @@ interface ReadData{
     @Query("SELECT ToolName FROM Tools_List")
     fun getTools(): List<String>
 
-    @Query("SELECT tl.tag " +
+    @Query("SELECT DISTINCT rt.tag " +
             "FROM Recipe_Info ri, Tag_List tl, Recipe_Tags rt " +
             "WHERE ri.recipeName = :searchName " +
             "AND rt.RecipeName = ri.RecipeName ")

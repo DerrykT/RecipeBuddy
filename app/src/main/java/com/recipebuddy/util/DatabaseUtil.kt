@@ -305,61 +305,26 @@ fun formatRecipe(unformattedRecipe: Recipe_Info): Recipe {
 
 }
 
-fun fetchFormattedRecipes(recipes: MutableState<List<Recipe>>) {
+fun fetchFormattedRecipes(displayedRecipes: MutableState<List<Recipe>>, originalRecipes: MutableState<List<Recipe>>) {
     GlobalScope.launch(Dispatchers.IO) {
         val unformattedRecipes = db?.readData()?.getRecipes() ?: return@launch
-        val formattedRecipes = mutableListOf<Recipe>()
-
-        unformattedRecipes.forEach { unformattedRecipe ->
-            val ingredients =
-                db?.readData()?.getRecipeIngredients(unformattedRecipe.RecipeName) ?: listOf()
-            val tags = db?.readData()?.getTagsByRecipeName(unformattedRecipe.RecipeName) ?: listOf()
-            val instructions = unformattedRecipe.RecipeInstructions.split('*')
-            val timers = unformattedRecipe.RecipeTimers.split('*')
-            val formattedInstructions = mutableListOf<Instruction>()
-            var totalTime = 0
-            val tools = unformattedRecipe.Tools.split('*')
-
-            instructions.forEachIndexed { index, text ->
-                totalTime += timers[index].toIntOrNull() ?: 0
-                formattedInstructions.add(
-                    Instruction(
-                        text,
-                        if (timers[index].toInt() == 0) null else timers[index].toInt()
-                    )
-                )
-            }
-
-            formattedRecipes.add(
-                Recipe(
-                    unformattedRecipe.RecipeName,
-                    unformattedRecipe.RecipeRating,
-                    unformattedRecipe.Time,
-                    tags,
-                    ingredients,
-                    tools,
-                    formattedInstructions,
-                    BitmapFactory.decodeByteArray(
-                        unformattedRecipe.Picture,
-                        0,
-                        unformattedRecipe.Picture.size
-                    )
-                )
-            )
-        }
+        val formattedRecipes = formatRecipes(unformattedRecipes)
 
         withContext(Dispatchers.Main) {
-            recipes.value = formattedRecipes
+            displayedRecipes.value = formattedRecipes
+            originalRecipes.value = formattedRecipes
         }
     }
 }
 
-fun fetchSearchTags(tagsState: MutableState<List<Tag_List>>) {
+fun fetchSearchTags(tagsState: MutableState<List<RecipeTag>>) {
     GlobalScope.launch(Dispatchers.IO) {
         val fetchedTags = db?.readData()?.getTags() ?: listOf()
 
         withContext(Dispatchers.Main) {
-            tagsState.value = fetchedTags
+            tagsState.value = fetchedTags.map {
+                RecipeTag(it.Tag, false)
+            }
         }
     }
 }
@@ -409,12 +374,12 @@ fun persistIngredient(
     }
 }
 
-fun persistTag(newTag: Tag_List, tagsState: MutableState<List<Tag_List>>) {
+fun persistTag(newTag: Tag_List, tagsState: MutableState<List<RecipeTag>>) {
     GlobalScope.launch(Dispatchers.IO) {
         db?.insertion()?.insertTagList(newTag)
 
         withContext(Dispatchers.Main) {
-            tagsState.value = listOf(newTag) + tagsState.value
+            tagsState.value = listOf(RecipeTag(newTag.Tag, false)) + tagsState.value
         }
     }
 }
@@ -431,3 +396,5 @@ data class Recipe(
 )
 
 data class Instruction(val text: String, val time: Int?)
+
+data class RecipeTag(val text: String, var isSelected: Boolean)
